@@ -1571,6 +1571,121 @@ svg.ic {
   animation: passo 0.36s ease-in-out infinite alternate-reverse;
 }
 
+.pinguim.espiando .pg-corpo {
+  transform-origin: 17px 38px;
+  animation: espiar 1.3s ease-in-out infinite;
+}
+
+@keyframes espiar {
+  0%,
+  35% {
+    transform: translateX(-1.5px) rotate(-9deg);
+  }
+  50%,
+  85% {
+    transform: translateX(1.5px) rotate(9deg);
+  }
+  100% {
+    transform: translateX(-1.5px) rotate(-9deg);
+  }
+}
+
+.pinguim .pg-caixa {
+  position: absolute;
+  left: -3px;
+  bottom: -1px;
+  width: 40px;
+  height: 34px;
+  opacity: 0;
+  transform: translateY(-34px);
+  pointer-events: none;
+  filter: drop-shadow(0 2px 2px rgb(0 0 0 / 0.3));
+}
+
+.pinguim .pg-agente {
+  transition: opacity 0.1s;
+}
+
+.pinguim.escondido .pg-agente {
+  opacity: 0;
+}
+
+.pinguim.escondido .pg-caixa {
+  opacity: 1;
+  transform: none;
+  transition: transform 0.18s cubic-bezier(0.5, 0, 0.75, 0), opacity 0.05s;
+}
+
+.pg-alerta {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 2px);
+  translate: -50% 0;
+  color: #e3262d;
+  font: 900 26px/1 Impact, 'Arial Black', sans-serif;
+  text-shadow: 0 0 2px #fff, 0 0 4px #fff;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.pinguim.escondido .pg-alerta {
+  animation: alerta 0.9s ease-out;
+}
+
+@keyframes alerta {
+  0% {
+    opacity: 0;
+    transform: translateY(6px) scale(0.4);
+  }
+  15% {
+    opacity: 1;
+    transform: translateY(-4px) scale(1.25);
+  }
+  30%,
+  75% {
+    opacity: 1;
+    transform: none;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+/* A mensagem confidencial que se autodestrói */
+.autodestruir {
+  color: #b3261e;
+  font-weight: 700;
+}
+
+:root[data-esquema='noir'] .autodestruir {
+  color: #ff8a80;
+}
+
+.janela.explodindo {
+  animation: explodir 0.65s ease-in forwards;
+}
+
+@keyframes explodir {
+  0% {
+    transform: none;
+  }
+  15% {
+    transform: translate(-5px, 2px) rotate(-1.5deg);
+  }
+  30% {
+    transform: translate(5px, -2px) rotate(1.5deg);
+  }
+  45% {
+    transform: translate(-3px, 1px) scale(1.02);
+    filter: brightness(1.6);
+  }
+  100% {
+    transform: scale(1.35);
+    opacity: 0;
+    filter: brightness(3) blur(8px);
+  }
+}
+
 .pinguim.acenando .pg-asa-d {
   transform-origin: 27px 19px;
   animation: acenar 0.28s ease-in-out infinite alternate;

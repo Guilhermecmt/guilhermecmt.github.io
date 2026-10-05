@@ -90,7 +90,9 @@ APARÊNCIA
   céu do papel de parede. Em "Dinâmico", ele acompanha a hora do dia.
 
 Cada projeto tem endereço próprio: dá para mandar o link de um deles.
-E fique de olho no pinguim.
+
+P.S.: há um agente infiltrado no sistema. Se vir um pinguim de óculos
+escuros andando pelo Dock, clique nele.
 
 Feito à mão com Astro. Sem rastreadores.`;
 ---
@@ -492,10 +494,11 @@ Digite <span class="t-amarelo">ajuda</span> para ver os comandos, ou experimente
     </div>
   </div>
 
-  <!-- O pinguim que passeia em cima do Dock -->
-  <button class="pinguim" type="button" data-pinguim hidden aria-label="Pinguim: abre o terminal" title="Oi! Clique em mim">
+  <!-- O agente infiltrado: um pinguim de óculos escuros que passeia em cima do Dock -->
+  <button class="pinguim" type="button" data-pinguim hidden aria-label="Agente infiltrado: clique para receber a missão" title="Agente infiltrado. Clique para receber a missão">
     <span class="pinguim-fala" data-pinguim-fala hidden></span>
-    <svg viewBox="0 0 34 40" aria-hidden="true">
+    <span class="pg-alerta" aria-hidden="true">!</span>
+    <svg class="pg-agente" viewBox="0 0 34 40" aria-hidden="true">
       <g class="pg-corpo">
         <path class="pg-asa-e" d="M6.5 18c-3.5 4-4 9-2.5 12 2-1.5 3.5-5 3.5-9Z" fill="#16161d"></path>
         <path class="pg-asa-d" d="M27.5 18c3.5 4 4 9 2.5 12-2-1.5-3.5-5-3.5-9Z" fill="#16161d"></path>
@@ -503,14 +506,30 @@ Digite <span class="t-amarelo">ajuda</span> para ver os comandos, ou experimente
         <ellipse cx="17" cy="25.5" rx="7.6" ry="10" fill="#fbfbf6"></ellipse>
         <ellipse cx="13.6" cy="12.5" rx="3.3" ry="4" fill="#fbfbf6"></ellipse>
         <ellipse cx="20.4" cy="12.5" rx="3.3" ry="4" fill="#fbfbf6"></ellipse>
-        <circle cx="14.3" cy="13.2" r="1.5" fill="#111"></circle>
-        <circle cx="19.7" cy="13.2" r="1.5" fill="#111"></circle>
-        <circle cx="14.7" cy="12.6" r=".5" fill="#fff"></circle>
-        <circle cx="20.1" cy="12.6" r=".5" fill="#fff"></circle>
         <path d="M13 16.6c2.2-1.4 5.8-1.4 8 0-1.2 2.6-2.6 3.6-4 3.6s-2.8-1-4-3.6Z" fill="#f5a316" stroke="#c97a06" stroke-width=".6"></path>
+        <!-- óculos escuros -->
+        <g class="pg-oculos">
+          <path d="M9.4 11.2h15.2" stroke="#050507" stroke-width="1.2"></path>
+          <rect x="9.6" y="10.6" width="6.6" height="4.4" rx="1.9" fill="#050507"></rect>
+          <rect x="17.8" y="10.6" width="6.6" height="4.4" rx="1.9" fill="#050507"></rect>
+          <path d="M10.8 11.7l1.6 0M19 11.7l1.6 0" stroke="#fff" stroke-width=".7" stroke-linecap="round" opacity=".8"></path>
+        </g>
+        <!-- ponto no ouvido -->
+        <path class="pg-fone" d="M27.6 12.5c1.6.6 1.9 2.3 1 3.4-.9 1.1-.6 2.6.4 3.6" fill="none" stroke="#c9ced8" stroke-width=".8" stroke-linecap="round"></path>
+        <circle cx="27.4" cy="12.4" r="1" fill="#c9ced8"></circle>
+        <!-- gravata -->
+        <path d="M15.6 19.6h2.8l-.6 1.8 1.2 6-2 2.1-2-2.1 1.2-6Z" fill="#16161d"></path>
       </g>
       <ellipse class="pg-pe-e" cx="12" cy="37.4" rx="4.6" ry="2.1" fill="#f5a316" stroke="#c97a06" stroke-width=".6"></ellipse>
       <ellipse class="pg-pe-d" cx="22" cy="37.4" rx="4.6" ry="2.1" fill="#f5a316" stroke="#c97a06" stroke-width=".6"></ellipse>
+    </svg>
+    <!-- o disfarce: uma caixa de papelão -->
+    <svg class="pg-caixa" viewBox="0 0 40 34" aria-hidden="true">
+      <path d="M2 9h36v23H2Z" fill="#c8955a" stroke="#7a5527" stroke-width="1"></path>
+      <path d="M2 9l4-6h28l4 6" fill="#dcae74" stroke="#7a5527" stroke-width="1" stroke-linejoin="round"></path>
+      <path d="M17 9h6v23h-6Z" fill="#e8c48f" opacity=".85"></path>
+      <path d="M6 16h8M26 16h8" stroke="#7a5527" stroke-width=".8" opacity=".6"></path>
+      <path d="M8 24h4v4H8Z" fill="none" stroke="#7a5527" stroke-width=".8" opacity=".6"></path>
     </svg>
   </button>
 

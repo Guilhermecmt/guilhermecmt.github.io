@@ -1134,7 +1134,7 @@ function linhasBoot() {
     `${OK} Iniciado o Gerenciador de Janelas.`,
     `${OK} Carregado o esquema de cores ${nomesEsquema[raiz.dataset.esquema ?? 'azul'] ?? 'Azul'}.`,
     `${OK} Iniciado o Dock.`,
-    `${OK} Iniciado o pinguim.`,
+    `${OK} Agente infiltrado. Ninguém percebeu.`,
     `${OK} Alcançado o alvo Área de Trabalho.`,
   ];
 }
@@ -1233,7 +1233,7 @@ async function desligarAgora() {
   await digitarLog(
     $('[data-desligar-log]')!,
     [
-      `${OK} Parado o pinguim.`,
+      `${OK} O agente saiu sem deixar rastros.`,
       `${OK} Parado o Dock.`,
       `${OK} ${abertas === 1 ? 'Fechada 1 janela' : `Fechadas ${abertas} janelas`}.`,
       `${OK} Desmontado /home/guilherme/projetos.`,
@@ -1574,6 +1574,24 @@ function rodar(linha: string) {
     case 'whoami':
       escrever('guilherme\n');
       break;
+    case 'agente':
+    case 'missao':
+    case 'pinguim':
+      escrever(
+        '╔══════════════ CONFIDENCIAL ══════════════╗\n' +
+          '  Agente:   Pinguim (codinome Kernel)\n' +
+          '  Missão:   convencer você a falar com o Guilherme\n' +
+          '  Situação: infiltrado desde 2026\n' +
+          '  Disfarce: caixa de papelão (testada e aprovada)\n' +
+          '╚══════════════════════════════════════════╝\n' +
+          'Para aceitar a missão: abrir contato.txt\n\n',
+        't-amarelo',
+      );
+      break;
+    case 'whereis':
+    case 'which':
+      escrever(normalizar(arg) === 'pinguim' ? 'pinguim: informação confidencial\n' : `${arg}: /usr/bin/${arg}\n`);
+      break;
     case 'sobre':
       escrever(`${lerArquivo(['sobre.txt'])}\n`);
       break;
@@ -1706,14 +1724,43 @@ terminal.addEventListener('click', () => {
 });
 
 /* ============================================================
-   O pinguim: de vez em quando sobe de trás do Dock, anda, acena e vai embora
+   O agente: um pinguim infiltrado no sistema. De vez em quando sobe de trás do Dock,
+   anda de mansinho, olha para os lados, fala no rádio e vai embora. Se o mouse chega
+   perto, ele se esconde numa caixa de papelão. Clicar nele entrega a missão.
    ============================================================ */
 
 const pinguim = $<HTMLButtonElement>('[data-pinguim]')!;
 const falaPinguim = $('[data-pinguim-fala]', pinguim)!;
 let passeio: Animation | null = null;
 let timersPinguim: number[] = [];
-const FALAS = ['Oi!', 'Já viu o terminal?', 'sudo apt install café', `Tem ${dados.projetos.length} projetos na pasta!`, 'Clique em mim!', 'Experimente: neofetch'];
+let quadroPinguim = 0;
+let escondido = false;
+let tempoEscondido = 0;
+let timerSaida = 0;
+
+const FALAS_RADIO = [
+  'Psiu… ninguém me viu.',
+  'Base, aqui é o Pinguim. Câmbio.',
+  'Disfarce de ícone do Dock: ativado.',
+  'Infiltração concluída. Ou quase.',
+  'Missão: deixar tudo mais livre.',
+];
+const FALAS_ACENO = [
+  'Clique em mim. Tenho uma missão.',
+  'Você não viu nada.',
+  'sudo apt install disfarce',
+  `Já espionou os ${dados.projetos.length} projetos?`,
+  'Esta conversa nunca aconteceu.',
+];
+const sortear = (lista: string[]) => lista[Math.floor(Math.random() * lista.length)];
+
+// Etapas do passeio, em milissegundos: sobe, anda, para e espia, anda, para e acena, anda, desce.
+interface Etapa {
+  fim: number;
+  pose: 'andando' | 'espiando' | 'acenando';
+  fala?: string;
+}
+let etapas: Etapa[] = [];
 
 function agendarPinguim(ms = 75_000) {
   timersPinguim.push(window.setTimeout(passearPinguim, ms));
@@ -1730,50 +1777,160 @@ function passearPinguim() {
   const largura = 34;
   const x0 = r.left + 16;
   const x1 = r.right - largura - 16;
-  const meio = (x0 + x1) / 2;
-  const andar = ((x1 - x0) / 2 / 40) * 1000; // 40 px/s em cada metade
+  const xa = x0 + (x1 - x0) / 3;
+  const xb = x0 + ((x1 - x0) * 2) / 3;
+  const trecho = ((x1 - x0) / 3 / 34) * 1000; // anda devagar, 34 px/s
   const subir = 650;
-  const parar = 2600;
-  const total = subir * 2 + andar * 2 + parar;
-  const quadro = (x: number, y: number, t: number) => ({ transform: `translate(${x}px, ${y}px)`, offset: t / total });
+  const espiar = 2600;
+  const acenar = 2800;
+  const marcos = [subir, trecho, espiar, trecho, acenar, trecho, subir];
+  const t: number[] = [];
+  marcos.reduce((soma, m) => (t.push(soma + m), soma + m), 0);
+  const total = t[t.length - 1];
+  etapas = [
+    { fim: t[0], pose: 'andando' },
+    { fim: t[1], pose: 'andando' },
+    { fim: t[2], pose: 'espiando', fala: sortear(FALAS_RADIO) },
+    { fim: t[3], pose: 'andando' },
+    { fim: t[4], pose: 'acenando', fala: sortear(FALAS_ACENO) },
+    { fim: t[5], pose: 'andando' },
+    { fim: t[6], pose: 'andando' },
+  ];
+  const quadro = (x: number, y: number, ms: number) => ({ transform: `translate(${x}px, ${y}px)`, offset: ms / total });
 
   pinguim.style.top = `${r.top - 40 + 3}px`;
   pinguim.hidden = false;
-  pinguim.classList.add('andando');
+  escondido = false;
+  pinguim.classList.remove('escondido');
   passeio = pinguim.animate(
     [
       quadro(x0, 44, 0),
-      quadro(x0, 0, subir),
-      quadro(meio, 0, subir + andar),
-      quadro(meio, 0, subir + andar + parar),
-      quadro(x1, 0, subir + andar * 2 + parar),
+      quadro(x0, 0, t[0]),
+      quadro(xa, 0, t[1]),
+      quadro(xa, 0, t[2]),
+      quadro(xb, 0, t[3]),
+      quadro(xb, 0, t[4]),
+      quadro(x1, 0, t[5]),
       quadro(x1, 44, total),
     ],
     { duration: total, easing: 'linear', fill: 'forwards' },
   );
-  timersPinguim.push(
-    window.setTimeout(() => {
-      pinguim.classList.replace('andando', 'acenando');
-      falaPinguim.textContent = FALAS[Math.floor(Math.random() * FALAS.length)];
-      falaPinguim.hidden = false;
-    }, subir + andar),
-    window.setTimeout(() => {
-      pinguim.classList.replace('acenando', 'andando');
-      falaPinguim.hidden = true;
-    }, subir + andar + parar),
-  );
   passeio.finished.then(fimPasseio, fimPasseio);
+  quadroPinguim = requestAnimationFrame(acompanharPinguim);
 }
+
+// A pose e a fala seguem o tempo da animação, que para quando ele se esconde.
+function acompanharPinguim() {
+  if (!passeio) return;
+  const agora = Number(passeio.currentTime ?? 0);
+  const etapa = etapas.find((e) => agora < e.fim) ?? etapas[etapas.length - 1];
+  if (!escondido) {
+    for (const pose of ['andando', 'espiando', 'acenando']) pinguim.classList.toggle(pose, pose === etapa.pose);
+    const fala = etapa.fala ?? '';
+    if (falaPinguim.textContent !== fala) falaPinguim.textContent = fala;
+    falaPinguim.hidden = !fala;
+  } else if (Date.now() - tempoEscondido > 9000) {
+    sairDaCaixa();
+  }
+  quadroPinguim = requestAnimationFrame(acompanharPinguim);
+}
+
+function entrarNaCaixa() {
+  if (!passeio || escondido) return;
+  escondido = true;
+  tempoEscondido = Date.now();
+  passeio.pause();
+  falaPinguim.hidden = true;
+  pinguim.classList.remove('andando', 'espiando', 'acenando');
+  pinguim.classList.add('escondido');
+}
+
+function sairDaCaixa() {
+  if (!passeio || !escondido) return;
+  escondido = false;
+  pinguim.classList.remove('escondido');
+  passeio.play();
+}
+
+// Mouse perto: para a caixa. Mouse longe: sai devagar e segue a missão.
+document.addEventListener('pointermove', (ev) => {
+  if (!passeio || ev.pointerType !== 'mouse') return;
+  const r = pinguim.getBoundingClientRect();
+  const d = Math.hypot(ev.clientX - (r.left + r.width / 2), ev.clientY - (r.top + r.height / 2));
+  if (d < 85) {
+    window.clearTimeout(timerSaida);
+    timerSaida = 0;
+    if (!escondido) entrarNaCaixa();
+  } else if (escondido && d > 150 && !timerSaida) {
+    timerSaida = window.setTimeout(() => {
+      timerSaida = 0;
+      sairDaCaixa();
+    }, 700);
+  }
+});
 
 function fimPasseio() {
   if (!passeio) return;
   passeio = null;
+  cancelAnimationFrame(quadroPinguim);
   for (const t of timersPinguim) clearTimeout(t);
   timersPinguim = [];
+  escondido = false;
   pinguim.hidden = true;
-  pinguim.classList.remove('andando', 'acenando');
+  pinguim.classList.remove('andando', 'espiando', 'acenando', 'escondido');
   falaPinguim.hidden = true;
   agendarPinguim();
+}
+
+/* A missão: uma mensagem confidencial que se autodestrói. */
+
+let contagemMissao = 0;
+
+function mostrarMissao() {
+  window.clearInterval(contagemMissao);
+  dialogo(
+    'Mensagem confidencial',
+    'i-cadeado',
+    '<p><b>CONFIDENCIAL</b> · só para os olhos de quem está visitando.</p>' +
+      '<p><b>Agente:</b> Pinguim, codinome Kernel<br>' +
+      '<b>Missão:</b> se infiltrar neste sistema e convencer você a falar com o Guilherme<br>' +
+      '<b>Situação:</b> infiltrado desde 2026. Ninguém percebeu.</p>' +
+      '<p class="autodestruir">Esta mensagem se autodestruirá em <b data-contagem>10</b> segundos.</p>',
+    [
+      { rotulo: 'Aceitar a missão', cmd: 'missao-aceita', primario: true },
+      { rotulo: 'Abrir o terminal', cmd: 'neofetch' },
+      { rotulo: 'Fingir que não vi', cmd: 'fechar:dialogo' },
+    ],
+  );
+  const caixa = janelas.get('dialogo')!.el;
+  let restam = 10;
+  contagemMissao = window.setInterval(() => {
+    const numero = $('[data-contagem]', caixa);
+    // Se a caixa fechou ou virou outra mensagem, a contagem para.
+    if (!numero || !janelas.get('dialogo')!.aberta) {
+      window.clearInterval(contagemMissao);
+      return;
+    }
+    restam -= 1;
+    numero.textContent = String(restam);
+    if (restam > 0) return;
+    window.clearInterval(contagemMissao);
+    caixa.classList.add('explodindo');
+    window.setTimeout(() => {
+      fechar('dialogo', { semAnim: true });
+      caixa.classList.remove('explodindo');
+      mostrarBalao('Mensagem autodestruída', 'O agente pede desculpas pela fumaça.', null);
+    }, semMovimento() ? 0 : 650);
+  }, 1000);
+}
+
+function aceitarMissao() {
+  abrir('contato', itemDock('contato'));
+  const assunto = $<HTMLInputElement>('#correio-assunto');
+  const mensagem = $<HTMLTextAreaElement>('#correio-msg');
+  if (assunto) assunto.value = 'Missão aceita';
+  if (mensagem && !mensagem.value) mensagem.value = 'Olá, Guilherme! O pinguim me mandou aqui. ';
+  mensagem?.focus({ preventScroll: true });
 }
 
 pinguim.addEventListener('click', (ev) => {
@@ -1781,8 +1938,7 @@ pinguim.addEventListener('click', (ev) => {
   const p = passeio;
   fimPasseio();
   p?.cancel();
-  abrir('terminal', pinguim);
-  rodarComEco('neofetch');
+  mostrarMissao();
 });
 
 /* ============================================================
@@ -1873,6 +2029,9 @@ function executar(cmd: string, origem?: Element | null) {
       break;
     case 'mover-area':
       moverParaArea(ativa, Number(arg));
+      break;
+    case 'missao-aceita':
+      aceitarMissao();
       break;
     case 'neofetch':
       abrir('terminal', origemPara(origem, 'terminal'));
