@@ -6,4 +6,6 @@ export default defineConfig({
   site: 'https://guilhermecmt.github.io',
   trailingSlash: 'ignore',
   build: { format: 'directory' },
+  // A barra de ferramentas do Astro (só no `npm run dev`) ficava em cima do Dock.
+  devToolbar: { enabled: false },
 });
