@@ -534,7 +534,7 @@ function relogio() {
   const dia = fmtDia.format(d).replace(/\./g, '').replace(/,/g, '');
   $('[data-relogio]')!.innerHTML = `<span class="dia">${esc(dia)}</span>${fmtHora.format(d)}`;
   $('[data-relogio-curto]')!.textContent = fmtHora.format(d);
-  if ((local.ler('os.ceu') || 'dinamico') === 'dinamico') raiz.dataset.ceu = ceuDaHora();
+  if ((local.ler('os.ceu') || 'dia') === 'dinamico') raiz.dataset.ceu = ceuDaHora();
 }
 
 /* ============================================================
@@ -551,7 +551,7 @@ function ceuDaHora() {
 function aplicarAparencia() {
   const pref = local.ler('os.esquema') || 'auto';
   raiz.dataset.esquema = pref === 'auto' ? (prefereEscuro.matches ? 'noir' : 'azul') : pref;
-  const ceu = local.ler('os.ceu') || 'dinamico';
+  const ceu = local.ler('os.ceu') || 'dia';
   raiz.dataset.ceu = ceu === 'dinamico' ? ceuDaHora() : ceu;
   if (local.ler('os.movimento') === 'reduzido') raiz.dataset.movimento = 'reduzido';
   else delete raiz.dataset.movimento;
@@ -561,7 +561,7 @@ function aplicarAparencia() {
 
 function sincronizarCentral() {
   const esquema = local.ler('os.esquema') || 'auto';
-  const ceu = local.ler('os.ceu') || 'dinamico';
+  const ceu = local.ler('os.ceu') || 'dia';
   for (const b of $$('[data-cmd^="esquema:"]')) b.setAttribute('aria-pressed', String(b.dataset.cmd === `esquema:${esquema}`));
   for (const b of $$('[data-cmd^="ceu:"]')) b.setAttribute('aria-pressed', String(b.dataset.cmd === `ceu:${ceu}`));
   $<HTMLInputElement>('[data-movimento]')!.checked = raiz.dataset.movimento === 'reduzido';

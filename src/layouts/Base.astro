@@ -34,7 +34,7 @@ const ogImage = image && Astro.site ? new URL(image, Astro.site).href : image;
     <meta name="twitter:card" content={ogImage ? 'summary_large_image' : 'summary'} />
     <meta name="theme-color" content="#245ddb" />
     <script is:inline>
-      // Aplica tema, céu e movimento antes da primeira pintura (a mesma regra está em os.ts).
+      // Aplica tema, céu (dia, salvo escolha na central de controle) e movimento antes da primeira pintura (a mesma regra está em os.ts).
       (function () {
         var r = document.documentElement;
         r.classList.add('js');
@@ -48,7 +48,7 @@ const ogImage = image && Astro.site ? new URL(image, Astro.site).href : image;
         var esquema = ler('os.esquema') || 'auto';
         if (esquema === 'auto') esquema = matchMedia('(prefers-color-scheme: dark)').matches ? 'noir' : 'azul';
         r.dataset.esquema = esquema;
-        var ceu = ler('os.ceu') || 'dinamico';
+        var ceu = ler('os.ceu') || 'dia';
         if (ceu === 'dinamico') {
           var h = new Date().getHours();
           ceu = esquema === 'noir' || h < 6 || h >= 19 ? 'noite' : h >= 17 ? 'tarde' : 'dia';
