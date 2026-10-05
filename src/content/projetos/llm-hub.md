@@ -1,7 +1,7 @@
 ---
 titulo: LLM Hub
 resumo: Um app de bandeja para Windows que mostra a VRAM da GPU e libera a memória presa por modelos de IA locais com um clique.
-ordem: 6
+ordem: 8
 tipo: App para Windows
 periodo: '2026'
 situacao: Disponível

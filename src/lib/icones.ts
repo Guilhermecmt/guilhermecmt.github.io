@@ -37,6 +37,16 @@ export const iconesProjeto: Record<string, IconeProjeto> = {
     desenho:
       '<rect x="15" y="15" width="18" height="18" rx="3.2" fill="none" stroke="#fff" stroke-width="2.6"/><rect x="20.2" y="20.2" width="7.6" height="7.6" rx="1.4"/><path d="M19.5 10.5v4M24 10.5v4M28.5 10.5v4M19.5 33.5v4M24 33.5v4M28.5 33.5v4M10.5 19.5h4M10.5 24h4M10.5 28.5h4M33.5 19.5h4M33.5 24h4M33.5 28.5h4" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/>',
   },
+  compressor: {
+    cores: ['#6ff0d6', '#0c8a7c'],
+    desenho:
+      '<path d="M10.5 10.5l8 8M19 12.5v6h-6M37.5 10.5l-8 8M29 12.5v6h6M10.5 37.5l8-8M19 35.5v-6h-6M37.5 37.5l-8-8M29 35.5v-6h6" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>',
+  },
+  'dashboards-hub': {
+    cores: ['#ff96ad', '#c2264f'],
+    desenho:
+      '<rect x="9" y="11" width="30" height="26" rx="3.5" fill="none" stroke="#fff" stroke-width="2.6"/><path d="M15.5 31v-5M21.5 31v-10M27.5 31v-7M33.5 31v-13" stroke="#fff" stroke-width="3.2" stroke-linecap="round"/>',
+  },
   rookgaard: {
     cores: ['#ffa36e', '#c03a17'],
     desenho:

@@ -104,7 +104,7 @@ const primeiro = projetos[0];
                 <span class="tipo">{p.data.tipo}</span>
                 <span class="col">{p.data.tipo}</span>
                 <span class="col col-extra">{p.data.situacao}</span>
-                <span class="col col-extra">{p.data.codigo === 'aberto' ? 'Aberto' : 'Privado'}</span>
+                <span class="col col-extra">{{ aberto: 'Aberto', privado: 'Privado', empresa: 'Da empresa' }[p.data.codigo]}</span>
               </a>
             </li>
           ))

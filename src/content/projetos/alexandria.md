@@ -1,7 +1,7 @@
 ---
 titulo: Alexandria
 resumo: Plataforma de cursos online white-label, em que cada organização tem domínio, marca, alunos e administradores próprios.
-ordem: 2
+ordem: 4
 tipo: SaaS multi-tenant
 periodo: '2026'
 situacao: Em desenvolvimento

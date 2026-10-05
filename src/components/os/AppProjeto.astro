@@ -12,7 +12,7 @@ interface Props {
 const { projeto, proximo } = Astro.props;
 const { data } = projeto;
 const { Content } = await render(projeto);
-const noAr = data.situacao === 'No ar' || data.situacao === 'Disponível';
+const noAr = ['No ar', 'Em produção', 'Disponível'].includes(data.situacao);
 ---
 
 <div class="rolagem projeto">
@@ -28,6 +28,10 @@ const noAr = data.situacao === 'No ar' || data.situacao === 'Disponível';
           {
             data.codigo === 'aberto' ? (
               <span class="selo aberto">Código aberto</span>
+            ) : data.codigo === 'empresa' ? (
+              <span class="selo fechado" title="Projeto feito no trabalho. O código pertence à empresa.">
+                Feito no trabalho
+              </span>
             ) : (
               <span class="selo fechado" title="O código-fonte não é público. Acesso para avaliação sob pedido.">
                 Código privado
@@ -94,6 +98,17 @@ const noAr = data.situacao === 'No ar' || data.situacao === 'Disponível';
           <legend>Tecnologias</legend>
           <ul class="etiquetas">{data.stack.map((t) => <li>{t}</li>)}</ul>
         </fieldset>
+        {
+          data.codigo === 'empresa' && (
+            <p class="aviso-privado">
+              <Ic id="i-cadeado" />
+              <span>
+                Projeto feito no meu trabalho: o código pertence à empresa e não posso compartilhá-lo. Conto
+                como foi feito numa conversa: <a href="/#contato" data-cmd="abrir:contato">fale comigo</a>.
+              </span>
+            </p>
+          )
+        }
         {
           data.codigo === 'privado' && (
             <p class="aviso-privado">

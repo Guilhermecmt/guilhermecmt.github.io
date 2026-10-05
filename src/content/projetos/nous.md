@@ -1,7 +1,7 @@
 ---
 titulo: Nous
 resumo: Uma IA privada que roda inteira no seu PC, com chat, visão, geração de imagem e memória, instalada em dois cliques.
-ordem: 5
+ordem: 7
 tipo: App para Windows
 periodo: '2026'
 situacao: Disponível

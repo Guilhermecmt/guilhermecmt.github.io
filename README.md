@@ -9,6 +9,8 @@ Desenvolvedor full-stack. Faço software inteiro: da primeira tabela do banco ao
 | Projeto | O que é |
 |---|---|
 | [Academia dos Sábios](https://guilhermecmt.github.io/projetos/academia-dos-sabios/) | Conversas com filósofos da história, reconstruídos a partir das próprias obras. [No ar](https://academia-dos-sabios-server.vercel.app). |
+| [Compressor](https://guilhermecmt.github.io/projetos/compressor/) | Ferramenta interna que comprime, converte e organiza PDFs, imagens, vídeos e documentos do Office sem mandar nada para fora da empresa. Feito no trabalho. |
+| [Dashboards Hub](https://guilhermecmt.github.io/projetos/dashboards-hub/) | Central com login único para os painéis de comissões, comercial e financeiro de uma corretora, com perfis por setor. Feito no trabalho. |
 | [Alexandria](https://guilhermecmt.github.io/projetos/alexandria/) | Plataforma de cursos online white-label, com isolamento entre organizações em três camadas. |
 | [Gymnous Mind](https://guilhermecmt.github.io/projetos/gymnous-mind/) | App de treinos para casa, calistenia e academia, com progressão de carga automática. |
 | [StockGenius](https://guilhermecmt.github.io/projetos/stockgenius/) | Motor de decisão de investimentos para a B3 e a NYSE, com análise offline e auditável. |
@@ -17,7 +19,7 @@ Desenvolvedor full-stack. Faço software inteiro: da primeira tabela do banco ao
 | [Rookgaard](https://guilhermecmt.github.io/projetos/rookgaard/) | RPG 2D no estilo Tibia em JavaScript puro, sem nenhum arquivo de imagem ou som. |
 
 A maioria desses projetos tem o código privado. Se você quer avaliar algum, libero o acesso ao
-repositório: é só pedir.
+repositório: é só pedir. Os dois feitos no trabalho são exceção: o código é da empresa.
 
 ## Contato
 

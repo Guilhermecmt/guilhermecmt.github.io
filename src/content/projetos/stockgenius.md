@@ -1,7 +1,7 @@
 ---
 titulo: StockGenius
 resumo: Motor de decisão de investimentos para a B3 e a NYSE, com análise que roda offline e pode ser auditada.
-ordem: 4
+ordem: 6
 tipo: Ferramenta pessoal
 periodo: '2026'
 situacao: Uso pessoal

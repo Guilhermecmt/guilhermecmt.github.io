@@ -1,7 +1,7 @@
 ---
 titulo: Gymnous Mind
 resumo: App de treinos para casa, calistenia e academia que monta o treino e sobe a carga quando você bate a meta.
-ordem: 3
+ordem: 5
 tipo: App de desktop e celular
 periodo: '2026'
 situacao: Em desenvolvimento

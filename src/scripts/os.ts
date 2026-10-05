@@ -9,7 +9,7 @@ interface Projeto {
   resumo: string;
   tipo: string;
   situacao: string;
-  codigo: 'privado' | 'aberto';
+  codigo: 'privado' | 'aberto' | 'empresa';
   stack: string[];
   demo: string | null;
   repo: string | null;
@@ -669,6 +669,8 @@ const explorador = $('[data-explorador]')!;
 const listaPr = $('.pr-lista', explorador)!;
 let selecionado = dados.projetos[0]?.slug ?? '';
 
+const textoCodigo = { aberto: 'código aberto', privado: 'código privado', empresa: 'feito no trabalho' };
+
 const itemPr = (slug: string) => $<HTMLElement>(`.pr-item[data-slug="${slug}"]`, listaPr);
 const itensVisiveis = () => $$('.pr-item', listaPr).filter((i) => !i.closest('li')!.hidden);
 
@@ -679,7 +681,7 @@ function selecionar(slug: string, rolar = true) {
   for (const it of $$('.pr-item', listaPr)) it.classList.toggle('sel', it.dataset.slug === slug);
 
   $('[data-detalhes]', explorador)!.innerHTML =
-    `<b>${esc(p.titulo)}</b><p>${esc(p.tipo)}</p><p>${esc(p.situacao)} · código ${p.codigo === 'aberto' ? 'aberto' : 'privado'}</p>` +
+    `<b>${esc(p.titulo)}</b><p>${esc(p.tipo)}</p><p>${esc(p.situacao)} · ${textoCodigo[p.codigo]}</p>` +
     `<p>${esc(p.stack.slice(0, 4).join(', '))}</p>`;
 
   const demo = $<HTMLAnchorElement>('[data-tp="demo"]', explorador)!;
@@ -688,7 +690,7 @@ function selecionar(slug: string, rolar = true) {
   const codigo = $<HTMLAnchorElement>('[data-tp="codigo"]', explorador)!;
   codigo.hidden = !p.repo;
   if (p.repo) codigo.href = p.repo;
-  $('[data-tp="pedir"]', explorador)!.hidden = p.codigo === 'aberto';
+  $('[data-tp="pedir"]', explorador)!.hidden = p.codigo !== 'privado';
 
   const img = $<HTMLImageElement>('[data-galeria-img]', explorador)!;
   if (p.capa) {
@@ -1348,7 +1350,7 @@ function lerArquivo(c: string[]) {
     return (
       `# ${p.titulo}\n\n${p.resumo}\n\n` +
       `Tipo:        ${p.tipo}\nSituação:    ${p.situacao}\n` +
-      `Código:      ${p.codigo === 'aberto' ? 'aberto' : 'privado (acesso sob pedido)'}\n` +
+      `Código:      ${{ aberto: 'aberto', privado: 'privado (acesso sob pedido)', empresa: 'da empresa (feito no trabalho)' }[p.codigo]}\n` +
       `Tecnologias: ${p.stack.join(', ')}\n\nPara ver tudo: abrir ${p.slug}\n`
     );
   }
@@ -1437,7 +1439,7 @@ function neofetch() {
 
 function top() {
   const n = dados.projetos.length;
-  const ativo = (p: Projeto) => p.situacao === 'No ar' || p.situacao === 'Disponível';
+  const ativo = (p: Projeto) => ['No ar', 'Em produção', 'Disponível'].includes(p.situacao);
   const rodando = dados.projetos.filter(ativo).length;
   escrever(
     `top - ${new Date().toLocaleTimeString('pt-BR')} ligado há ${minutosLigado()} min,  1 usuário,  carga média: 0,42 0,37 0,30\n` +
@@ -1711,7 +1713,7 @@ const pinguim = $<HTMLButtonElement>('[data-pinguim]')!;
 const falaPinguim = $('[data-pinguim-fala]', pinguim)!;
 let passeio: Animation | null = null;
 let timersPinguim: number[] = [];
-const FALAS = ['Oi!', 'Já viu o terminal?', 'sudo apt install café', 'Tem 7 projetos na pasta!', 'Clique em mim!', 'Experimente: neofetch'];
+const FALAS = ['Oi!', 'Já viu o terminal?', 'sudo apt install café', `Tem ${dados.projetos.length} projetos na pasta!`, 'Clique em mim!', 'Experimente: neofetch'];
 
 function agendarPinguim(ms = 75_000) {
   timersPinguim.push(window.setTimeout(passearPinguim, ms));

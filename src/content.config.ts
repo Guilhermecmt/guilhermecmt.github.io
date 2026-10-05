@@ -12,9 +12,10 @@ const projetos = defineCollection({
       ordem: z.number(),
       tipo: z.string(),
       periodo: z.string(),
-      situacao: z.enum(['No ar', 'Disponível', 'Em desenvolvimento', 'Uso pessoal', 'Concluído']),
+      situacao: z.enum(['No ar', 'Em produção', 'Disponível', 'Em desenvolvimento', 'Uso pessoal', 'Concluído']),
       // "privado": o código não é público; a página diz que o acesso é sob pedido.
-      codigo: z.enum(['privado', 'aberto']),
+      // "empresa": feito no trabalho; o código é da empresa e não pode ser compartilhado.
+      codigo: z.enum(['privado', 'aberto', 'empresa']),
       stack: z.array(z.string()),
       numeros: z.array(z.object({ valor: z.string(), rotulo: z.string() })).default([]),
       links: z

@@ -1,0 +1,71 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1000" viewBox="0 0 1600 1000" role="img" aria-label="Redução de tamanho dos PDFs nos três níveis do Compressor e o caminho de um arquivo pelo sistema">
+  <defs>
+    <linearGradient id="fundo" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0b1a1c"/>
+      <stop offset="1" stop-color="#0c2a2b"/>
+    </linearGradient>
+    <radialGradient id="brilho" cx="0.82" cy="0.1" r="0.6">
+      <stop offset="0" stop-color="#2dd4bf" stop-opacity="0.32"/>
+      <stop offset="1" stop-color="#2dd4bf" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="barra" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#14b8a6"/>
+      <stop offset="1" stop-color="#5eead4"/>
+    </linearGradient>
+  </defs>
+  <rect width="1600" height="1000" fill="url(#fundo)"/>
+  <rect width="1600" height="1000" fill="url(#brilho)"/>
+
+  <g font-family="Inter, 'Segoe UI', system-ui, sans-serif">
+    <text x="120" y="150" fill="#5eead4" font-size="26" font-weight="600" letter-spacing="4">COMPRESSÃO DE PDF</text>
+    <text x="120" y="215" fill="#ffffff" font-size="52" font-weight="600">PDFs até 75% menores, com o texto intacto</text>
+    <text x="120" y="262" fill="#9fc7c3" font-size="26">Redução total num conjunto de 31 PDFs públicos (362 MB), antes e depois do motor novo</text>
+
+    <!-- barras: antes (cinza) e depois (verde-água) -->
+    <g font-size="28">
+      <text x="120" y="372" fill="#e6fffb" font-weight="600">Extrema</text>
+      <rect x="420" y="340" width="1060" height="44" rx="10" fill="#ffffff" fill-opacity="0.06"/>
+      <rect x="420" y="340" width="265" height="20" rx="6" fill="#64748b"/>
+      <rect x="420" y="364" width="795" height="20" rx="6" fill="url(#barra)"/>
+      <text x="1230" y="383" fill="#5eead4" font-weight="700">75%</text>
+      <text x="700" y="359" fill="#94a3b8" font-size="20">25% antes</text>
+
+      <text x="120" y="472" fill="#e6fffb" font-weight="600">Recomendada</text>
+      <rect x="420" y="440" width="1060" height="44" rx="10" fill="#ffffff" fill-opacity="0.06"/>
+      <rect x="420" y="440" width="212" height="20" rx="6" fill="#64748b"/>
+      <rect x="420" y="464" width="710" height="20" rx="6" fill="url(#barra)"/>
+      <text x="1145" y="483" fill="#5eead4" font-weight="700">67%</text>
+      <text x="647" y="459" fill="#94a3b8" font-size="20">20% antes</text>
+
+      <text x="120" y="572" fill="#e6fffb" font-weight="600">Baixa</text>
+      <rect x="420" y="540" width="1060" height="44" rx="10" fill="#ffffff" fill-opacity="0.06"/>
+      <rect x="420" y="540" width="138" height="20" rx="6" fill="#64748b"/>
+      <rect x="420" y="564" width="594" height="20" rx="6" fill="url(#barra)"/>
+      <text x="1029" y="583" fill="#5eead4" font-weight="700">56%</text>
+      <text x="573" y="559" fill="#94a3b8" font-size="20">13% antes</text>
+    </g>
+
+    <!-- caminho do arquivo -->
+    <g font-size="24" font-weight="500">
+      <rect x="120" y="690" width="210" height="76" rx="38" fill="#ffffff" fill-opacity="0.07" stroke="#ffffff" stroke-opacity="0.18"/>
+      <text x="225" y="737" fill="#e6fffb" text-anchor="middle">Upload</text>
+      <path d="M340 728h40" stroke="#5eead4" stroke-width="3"/><path d="M372 720l10 8-10 8" fill="none" stroke="#5eead4" stroke-width="3"/>
+
+      <rect x="392" y="690" width="230" height="76" rx="38" fill="#ffffff" fill-opacity="0.07" stroke="#ffffff" stroke-opacity="0.18"/>
+      <text x="507" y="737" fill="#e6fffb" text-anchor="middle">API FastAPI</text>
+      <path d="M632 728h40" stroke="#5eead4" stroke-width="3"/><path d="M664 720l10 8-10 8" fill="none" stroke="#5eead4" stroke-width="3"/>
+
+      <rect x="684" y="690" width="230" height="76" rx="38" fill="#ffffff" fill-opacity="0.07" stroke="#ffffff" stroke-opacity="0.18"/>
+      <text x="799" y="737" fill="#e6fffb" text-anchor="middle">Fila SQLite</text>
+      <path d="M924 728h40" stroke="#5eead4" stroke-width="3"/><path d="M956 720l10 8-10 8" fill="none" stroke="#5eead4" stroke-width="3"/>
+
+      <rect x="976" y="690" width="250" height="76" rx="38" fill="#2dd4bf" fill-opacity="0.14" stroke="#5eead4" stroke-opacity="0.7"/>
+      <text x="1101" y="737" fill="#e6fffb" text-anchor="middle">Worker sem rede</text>
+      <path d="M1236 728h40" stroke="#5eead4" stroke-width="3"/><path d="M1268 720l10 8-10 8" fill="none" stroke="#5eead4" stroke-width="3"/>
+
+      <rect x="1288" y="690" width="192" height="76" rx="38" fill="#ffffff" fill-opacity="0.07" stroke="#ffffff" stroke-opacity="0.18"/>
+      <text x="1384" y="737" fill="#e6fffb" text-anchor="middle">Download</text>
+    </g>
+    <text x="120" y="840" fill="#9fc7c3" font-size="24">Conferência visual antes de entregar · sem metadados pessoais · arquivos apagados em 2 horas</text>
+  </g>
+</svg>

@@ -1,7 +1,7 @@
 ---
 titulo: Rookgaard
 resumo: Um RPG 2D no estilo Tibia feito do zero em JavaScript puro sobre Canvas, sem frameworks e sem nenhum arquivo de imagem ou som.
-ordem: 7
+ordem: 9
 tipo: Jogo no navegador
 periodo: '2026'
 situacao: Concluído
