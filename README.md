@@ -1,45 +1,30 @@
-# Portfólio
+# Guilherme Macêdo
 
-Site pessoal com os projetos de Guilherme Macêdo. É estático, feito com [Astro](https://astro.build),
-e não tem JavaScript além do botão de tema.
+Desenvolvedor full-stack. Faço software inteiro: da primeira tabela do banco ao servidor em que ele roda.
 
-O código dos projetos mostrados continua nos repositórios privados. Aqui ficam só o texto e as capturas de tela.
+**Portfólio: [guilhermecmt.github.io](https://guilhermecmt.github.io/)**
 
-## Rodar
+## Projetos
 
-```bash
-npm install
-npm run dev       # http://localhost:4321
-npm run build     # gera dist/
-npm run preview   # serve o dist/ para conferir
-```
-
-Node 22 ou mais novo.
-
-## Onde mexer
-
-| O quê | Onde |
+| Projeto | O que é |
 |---|---|
-| Nome, e-mail, LinkedIn, GitHub | `src/site.config.ts` (campo vazio esconde o link) |
-| Um projeto | `src/content/projetos/<slug>.md`: o cabeçalho tem os dados do cartão, e o corpo é o texto da página |
-| Imagens dos projetos | `src/assets/projetos/<slug>/`. O Astro gera as versões responsivas no build |
-| Cores e fontes | `src/styles/global.css` (tokens em `:root`, tema escuro logo abaixo) |
-| Capa do Alexandria | fonte editável em `design/alexandria-capa.svg`; a capa usada é o `.webp` gerado a partir dela |
+| [Academia dos Sábios](https://guilhermecmt.github.io/projetos/academia-dos-sabios/) | Conversas com filósofos da história, reconstruídos a partir das próprias obras. [No ar](https://academia-dos-sabios-server.vercel.app). |
+| [Alexandria](https://guilhermecmt.github.io/projetos/alexandria/) | Plataforma de cursos online white-label, com isolamento entre organizações em três camadas. |
+| [Gymnous Mind](https://guilhermecmt.github.io/projetos/gymnous-mind/) | App de treinos para casa, calistenia e academia, com progressão de carga automática. |
+| [StockGenius](https://guilhermecmt.github.io/projetos/stockgenius/) | Motor de decisão de investimentos para a B3 e a NYSE, com análise offline e auditável. |
+| [Nous](https://guilhermecmt.github.io/projetos/nous/) | IA privada que roda inteira no seu PC. [Código aberto](https://github.com/Guilhermecmt/Nous-Webui). |
+| [LLM Hub](https://guilhermecmt.github.io/projetos/llm-hub/) | App de bandeja que mostra a VRAM e libera a memória presa por modelos locais. [Código aberto](https://github.com/Guilhermecmt/HUB-LLM-LOCAL). |
+| [Rookgaard](https://guilhermecmt.github.io/projetos/rookgaard/) | RPG 2D no estilo Tibia em JavaScript puro, sem nenhum arquivo de imagem ou som. |
 
-Para adicionar um projeto, crie o `.md` com os mesmos campos dos outros. O esquema está em
-`src/content.config.ts`, e o build falha se faltar algum campo. `ordem` define a posição na página
-inicial, e o projeto com `ordem: 1` aparece em destaque.
+A maioria desses projetos tem o código privado. Se você quer avaliar algum, libero o acesso ao
+repositório: é só pedir.
 
-Antes de pôr uma captura nova, confira que ela não mostra chave, senha, dado de cliente ou dado financeiro real.
+## Contato
 
-## Publicação
+- E-mail: [guigarocko47@gmail.com](mailto:guigarocko47@gmail.com)
+- LinkedIn: [guilherme-macedo-5708301b8](https://www.linkedin.com/in/guilherme-macedo-5708301b8)
 
-O site fica no GitHub Pages, de graça, em **https://guilhermecmt.github.io/**. Todo push no `main`
-roda o workflow `.github/workflows/deploy.yml`, que faz o build e publica em um ou dois minutos.
-Para acompanhar: `gh run list --workflow deploy.yml`.
+## Sobre este repositório
 
-O repositório precisa ser público, porque o Pages do plano gratuito só publica a partir de
-repositório público. Isso não expõe nada: aqui só estão o texto e as imagens que o site já mostra.
-
-Para usar um domínio próprio mais tarde, configure em Settings → Pages → Custom domain e troque
-`site` em `astro.config.mjs`.
+É o código do próprio site: estático, feito com [Astro](https://astro.build) e publicado no GitHub
+Pages a cada push. Não tem rastreadores, e o único JavaScript é o do botão de tema claro e escuro.
