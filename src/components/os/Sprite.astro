@@ -58,15 +58,26 @@ const { slugs } = Astro.props;
       <stop offset=".35" stop-color="#eef3fa"></stop>
       <stop offset="1" stop-color="#8195b3"></stop>
     </linearGradient>
-    <radialGradient id="g-orbe" cx=".5" cy=".75" r=".75">
-      <stop offset="0" stop-color="#9df27c"></stop>
-      <stop offset=".55" stop-color="#3fa63a"></stop>
-      <stop offset="1" stop-color="#1b6a1b"></stop>
-    </radialGradient>
     <linearGradient id="g-avatar" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0" stop-color="#5fb0ff"></stop>
       <stop offset=".55" stop-color="#1f62e0"></stop>
       <stop offset="1" stop-color="#1238a8"></stop>
+    </linearGradient>
+    <linearGradient id="g-logo-1" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ff7ac0"></stop>
+      <stop offset="1" stop-color="#d01f74"></stop>
+    </linearGradient>
+    <linearGradient id="g-logo-2" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#6fe2ff"></stop>
+      <stop offset="1" stop-color="#1390c8"></stop>
+    </linearGradient>
+    <linearGradient id="g-logo-3" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ad94ff"></stop>
+      <stop offset="1" stop-color="#5732d4"></stop>
+    </linearGradient>
+    <linearGradient id="g-logo-4" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffd76a"></stop>
+      <stop offset="1" stop-color="#ef8410"></stop>
     </linearGradient>
     <filter id="f-sombra" x="-20%" y="-20%" width="140%" height="140%">
       <feDropShadow dx="0" dy="1" stdDeviation=".7" flood-color="#000" flood-opacity=".35"></feDropShadow>
@@ -84,11 +95,20 @@ const { slugs } = Astro.props;
     }
   </defs>
 
-  <!-- Logo do MacêdOS XP: um orbe verde com as iniciais -->
+  <!-- Logo do MacêdOS XP: a bandeira ondulada de quatro panos do XP, com outras cores -->
   <symbol id="i-logo" viewBox="0 0 48 48">
-    <circle cx="24" cy="24" r="21" fill="url(#g-orbe)" stroke="#145214" stroke-width="1.5"></circle>
-    <ellipse cx="24" cy="15" rx="15" ry="9" fill="url(#g-brilho)"></ellipse>
-    <text x="24" y="31.5" text-anchor="middle" font-family="Trebuchet MS, Segoe UI, sans-serif" font-size="19" font-weight="700" font-style="italic" fill="#fff" filter="url(#f-sombra)">gm</text>
+    <g stroke="#000" stroke-opacity=".28" stroke-width=".8" stroke-linejoin="round">
+      <path d="M5.2 9C10.5 6.4 15.5 6.4 22.2 8.6L20.6 22.4C14.2 20.4 9.2 20.4 3.6 22.6Z" fill="url(#g-logo-1)"></path>
+      <path d="M24.6 9.3C31 11.3 37.2 11.6 44.2 8.6L42.6 22.4C36.2 25.1 29.6 24.9 23 23.1Z" fill="url(#g-logo-2)"></path>
+      <path d="M3.3 25.3C9 23.2 14.1 23.2 20.3 25.2L18.8 39C12.6 37 7.6 37 1.8 39.1Z" fill="url(#g-logo-3)"></path>
+      <path d="M22.7 25.9C29.3 27.7 35.8 27.9 42.3 25.2L40.8 39C34.5 41.8 28 41.6 21.2 39.7Z" fill="url(#g-logo-4)"></path>
+    </g>
+    <g fill="#fff" opacity=".38">
+      <path d="M5.6 10.2C10.6 8 15.4 8 21.6 9.9L21.1 14.5C15 12.8 10.4 12.8 5 14.8Z"></path>
+      <path d="M25 10.6C31 12.4 37 12.7 43.4 10L42.9 14.6C36.6 17.2 30.6 17 24.5 15.2Z"></path>
+      <path d="M3.6 26.5C9.1 24.6 14 24.6 19.8 26.4L19.3 30.8C13.6 29.1 8.8 29.1 3.1 31Z"></path>
+      <path d="M23 27.1C29.2 28.8 35.4 29 41.5 26.5L41 30.9C34.9 33.5 28.8 33.3 22.5 31.6Z"></path>
+    </g>
   </symbol>
 
   <symbol id="i-avatar" viewBox="0 0 48 48">

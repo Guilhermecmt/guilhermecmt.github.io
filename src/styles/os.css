@@ -209,8 +209,9 @@ svg.ic {
 }
 
 .iniciar-btn .logo {
-  width: 18px;
-  height: 18px;
+  width: 21px;
+  height: 21px;
+  filter: drop-shadow(1px 1px 1px rgb(0 0 0 / 0.45));
 }
 
 .menu-rotulo {
