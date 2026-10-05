@@ -1,0 +1,158 @@
+---
+import { Image } from 'astro:assets';
+import type { CollectionEntry } from 'astro:content';
+import Selos from './Selos.astro';
+
+interface Props {
+  projeto: CollectionEntry<'projetos'>;
+  destaque?: boolean;
+  carregarCedo?: boolean;
+}
+
+const { projeto, destaque = false, carregarCedo = false } = Astro.props;
+const { data } = projeto;
+const href = `/projetos/${projeto.id}/`;
+---
+
+<article class:list={['card', destaque && 'destaque']}>
+  <a class="capa" href={href} tabindex="-1" aria-hidden="true">
+    {
+      data.capa && (
+        <Image
+          src={data.capa}
+          alt=""
+          widths={destaque ? [640, 960, 1360] : [480, 720, 960]}
+          sizes={destaque ? '(min-width: 1180px) 640px, 100vw' : '(min-width: 1180px) 540px, (min-width: 760px) 50vw, 100vw'}
+          class:list={[data.capaRetrato && 'retrato']}
+          loading={carregarCedo ? 'eager' : 'lazy'}
+        />
+      )
+    }
+  </a>
+  <div class="corpo">
+    <p class="eyebrow">{data.tipo} · {data.periodo}</p>
+    <h3 class="serif"><a href={href}>{data.titulo}</a></h3>
+    <p class="resumo">{data.resumo}</p>
+    <div class="selos"><Selos data={data} /></div>
+    <ul class="tags" aria-label="Tecnologias">
+      {data.stack.slice(0, destaque ? 6 : 4).map((t) => <li>{t}</li>)}
+    </ul>
+  </div>
+</article>
+
+<style>
+  .card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    transition: transform 0.2s, border-color 0.2s;
+  }
+
+  .card:hover {
+    transform: translateY(-2px);
+    border-color: color-mix(in srgb, var(--faint) 60%, var(--line));
+  }
+
+  .capa {
+    display: block;
+    aspect-ratio: 16 / 10;
+    overflow: hidden;
+    background: var(--surface-2);
+    border-bottom: 1px solid var(--line);
+  }
+
+  .capa :global(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: top center;
+    transition: transform 0.4s;
+  }
+
+  .capa :global(img.retrato) {
+    object-fit: contain;
+    object-position: center;
+    padding: 18px;
+    background: radial-gradient(circle at 50% 30%, #2a2350, #0b0c12 70%);
+  }
+
+  .card:hover .capa :global(img:not(.retrato)) {
+    transform: scale(1.02);
+  }
+
+  .corpo {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 22px 22px 24px;
+    flex: 1;
+  }
+
+  h3 {
+    font-size: 1.9rem;
+    line-height: 1.1;
+    margin: 0;
+  }
+
+  h3 a {
+    text-decoration: none;
+  }
+
+  /* O cartão inteiro é clicável pelo link do título. */
+  h3 a::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+  }
+
+  .resumo {
+    margin: 0;
+    color: var(--muted);
+    font-size: 0.98rem;
+  }
+
+  .selos {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 2px;
+  }
+
+  .tags {
+    margin-top: auto;
+    padding-top: 6px;
+  }
+
+  @media (min-width: 900px) {
+    .destaque {
+      flex-direction: row;
+      grid-column: 1 / -1;
+    }
+
+    .destaque .capa {
+      flex: 0 0 58%;
+      aspect-ratio: auto;
+      min-height: 380px;
+      border-bottom: 0;
+      border-right: 1px solid var(--line);
+    }
+
+    .destaque .corpo {
+      justify-content: center;
+      padding: 36px;
+    }
+
+    .destaque h3 {
+      font-size: 2.6rem;
+    }
+
+    .destaque .tags {
+      margin-top: 8px;
+    }
+  }
+</style>

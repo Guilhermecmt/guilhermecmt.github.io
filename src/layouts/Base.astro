@@ -1,0 +1,222 @@
+---
+import '../styles/global.css';
+import { site } from '../site.config';
+
+interface Props {
+  title?: string;
+  description?: string;
+  image?: string;
+}
+
+const { title, description = site.descricao, image } = Astro.props;
+const fullTitle = title ? `${title} · ${site.nome}` : `${site.nome} · ${site.papel}`;
+const canonical = Astro.site ? new URL(Astro.url.pathname, Astro.site).href : undefined;
+const ogImage = image && Astro.site ? new URL(image, Astro.site).href : image;
+const path = Astro.url.pathname;
+---
+
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{fullTitle}</title>
+    <meta name="description" content={description} />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    {canonical && <link rel="canonical" href={canonical} />}
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="pt_BR" />
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:description" content={description} />
+    {ogImage && <meta property="og:image" content={ogImage} />}
+    <meta name="twitter:card" content={ogImage ? 'summary_large_image' : 'summary'} />
+    <meta name="theme-color" content="#fbfaf7" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#0d0e12" media="(prefers-color-scheme: dark)" />
+    <script is:inline>
+      try {
+        const t = localStorage.getItem('tema');
+        if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t;
+      } catch {}
+    </script>
+  </head>
+  <body>
+    <a class="sr-only" href="#conteudo">Pular para o conteúdo</a>
+    <header class="topo">
+      <div class="wrap topo-in">
+        <a class="marca" href="/" aria-label={`${site.nome}, início`}>
+          <span class="serif">Guilherme</span> <span class="serif it">Macêdo</span>
+        </a>
+        <nav aria-label="Principal">
+          <a href="/#projetos" aria-current={path.startsWith('/projetos') ? 'page' : undefined}>Projetos</a>
+          <a href="/#sobre">Sobre</a>
+          <a href="/#contato">Contato</a>
+          <button class="tema" type="button" aria-label="Alternar tema claro e escuro">
+            <svg class="sol" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path></svg>
+            <svg class="lua" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z"></path></svg>
+          </button>
+        </nav>
+      </div>
+    </header>
+
+    <main id="conteudo">
+      <slot />
+    </main>
+
+    <footer class="rodape">
+      <div class="wrap rodape-in">
+        <p>© {new Date().getFullYear()} {site.nome}</p>
+        <p class="nota">Feito à mão com Astro. Sem rastreadores.</p>
+      </div>
+    </footer>
+
+    <script>
+      const botao = document.querySelector<HTMLButtonElement>('.tema');
+      botao?.addEventListener('click', () => {
+        const raiz = document.documentElement;
+        const escuroAgora =
+          raiz.dataset.theme === 'dark' ||
+          (!raiz.dataset.theme && matchMedia('(prefers-color-scheme: dark)').matches);
+        const novo = escuroAgora ? 'light' : 'dark';
+        raiz.dataset.theme = novo;
+        try {
+          localStorage.setItem('tema', novo);
+        } catch {}
+      });
+    </script>
+  </body>
+</html>
+
+<style>
+  .topo {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: color-mix(in srgb, var(--bg) 82%, transparent);
+    backdrop-filter: saturate(1.4) blur(12px);
+    -webkit-backdrop-filter: saturate(1.4) blur(12px);
+    border-bottom: 1px solid color-mix(in srgb, var(--line) 70%, transparent);
+  }
+
+  .topo-in {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    height: 64px;
+  }
+
+  .marca {
+    text-decoration: none;
+    font-size: 1.45rem;
+    line-height: 1;
+    white-space: nowrap;
+  }
+
+  .marca .it {
+    font-style: italic;
+    color: var(--accent);
+  }
+
+  nav {
+    display: flex;
+    align-items: center;
+    gap: clamp(10px, 2.5vw, 26px);
+    font-size: 0.92rem;
+  }
+
+  nav a {
+    text-decoration: none;
+    color: var(--muted);
+    transition: color 0.15s;
+  }
+
+  nav a:hover,
+  nav a[aria-current='page'] {
+    color: var(--text);
+  }
+
+  .tema {
+    display: grid;
+    place-items: center;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: var(--surface);
+    color: var(--muted);
+    cursor: pointer;
+  }
+
+  .tema:hover {
+    color: var(--text);
+  }
+
+  .tema svg {
+    width: 17px;
+    height: 17px;
+  }
+
+  .tema .sol {
+    display: none;
+  }
+
+  :global(:root[data-theme='dark']) .tema .sol {
+    display: block;
+  }
+
+  :global(:root[data-theme='dark']) .tema .lua {
+    display: none;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :global(:root:not([data-theme='light'])) .tema .sol {
+      display: block;
+    }
+    :global(:root:not([data-theme='light'])) .tema .lua {
+      display: none;
+    }
+  }
+
+  @media (max-width: 520px) {
+    .marca .it {
+      display: none;
+    }
+    nav {
+      font-size: 0.88rem;
+    }
+  }
+
+  .sr-only:focus {
+    position: fixed;
+    top: 8px;
+    left: 8px;
+    width: auto;
+    height: auto;
+    clip: auto;
+    padding: 8px 12px;
+    background: var(--text);
+    color: var(--bg);
+    z-index: 20;
+    border-radius: 8px;
+  }
+
+  .rodape {
+    margin-top: clamp(64px, 10vw, 120px);
+    border-top: 1px solid var(--line);
+    font-size: 0.88rem;
+    color: var(--faint);
+  }
+
+  .rodape-in {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 8px 24px;
+    padding-block: 28px;
+  }
+
+  .rodape p {
+    margin: 0;
+  }
+</style>

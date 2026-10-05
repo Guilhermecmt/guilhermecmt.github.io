@@ -1,0 +1,177 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../layouts/Base.astro';
+import ProjetoCard from '../components/ProjetoCard.astro';
+import { site } from '../site.config';
+
+const projetos = (await getCollection('projetos')).sort((a, b) => a.data.ordem - b.data.ordem);
+const [primeiro, ...demais] = projetos;
+
+const ferramentas = [
+  'TypeScript', 'Python', 'Node.js', 'React', 'Next.js', 'NestJS', 'FastAPI', 'PostgreSQL',
+  'Prisma', 'Redis', 'SQLite', 'DuckDB', 'Docker', 'Electron', 'Capacitor', 'Ollama',
+];
+---
+
+<Base>
+  <section class="hero wrap">
+    <p class="eyebrow">{site.papel} · {site.local}</p>
+    <h1 class="serif">
+      Construo software inteiro: da primeira tabela do banco <em>ao servidor em que ele roda.</em>
+    </h1>
+    <p class="lead">
+      Produtos web, apps de desktop e ferramentas de IA que rodam na sua máquina. Aqui estão alguns
+      dos projetos que fiz por conta própria. A maioria tem o código privado, então mostro o que
+      cada um faz e como foi pensado.
+    </p>
+    <div class="acoes">
+      <a class="btn primary" href="#projetos">Ver projetos</a>
+      <a class="btn" href="#contato">Falar comigo</a>
+    </div>
+  </section>
+
+  <section id="projetos" class="wrap secao" aria-labelledby="t-projetos">
+    <div class="secao-topo">
+      <h2 id="t-projetos" class="serif">Projetos</h2>
+      <p>{projetos.length} projetos. Cada um tem uma página com detalhes e capturas de tela.</p>
+    </div>
+    <div class="grade">
+      {primeiro && <ProjetoCard projeto={primeiro} destaque carregarCedo />}
+      {demais.map((p) => <ProjetoCard projeto={p} />)}
+    </div>
+  </section>
+
+  <section id="sobre" class="wrap secao sobre" aria-labelledby="t-sobre">
+    <h2 id="t-sobre" class="serif">Sobre</h2>
+    <div class="sobre-texto">
+      <p>
+        Sou desenvolvedor full-stack e gosto de levar um projeto do começo ao fim: modelar os dados,
+        escrever a API, desenhar a interface, empacotar o instalador e cuidar do servidor. Escrevo
+        principalmente TypeScript e Python.
+      </p>
+      <p>
+        O que me interessa é software que dá para entender e manter. Por isso documento as decisões
+        junto do código, escrevo testes para o que não pode quebrar e prefiro ferramentas que o usuário
+        controla: dados locais, sem assinatura e sem depender de serviço de terceiros quando não precisa.
+      </p>
+      <ul class="tags ferramentas" aria-label="Ferramentas que uso">
+        {ferramentas.map((f) => <li>{f}</li>)}
+      </ul>
+    </div>
+  </section>
+
+  <section id="contato" class="wrap secao contato" aria-labelledby="t-contato">
+    <h2 id="t-contato" class="serif">Vamos conversar</h2>
+    <p>
+      Quer ver o código de algum projeto privado? Libero o acesso ao repositório para avaliação. É
+      só pedir.
+    </p>
+    <div class="acoes">
+      {site.email && <a class="btn primary" href={`mailto:${site.email}`}>{site.email}</a>}
+      {site.github && <a class="btn" href={site.github} rel="me">GitHub</a>}
+      {site.linkedin && <a class="btn" href={site.linkedin} rel="me">LinkedIn</a>}
+    </div>
+  </section>
+</Base>
+
+<style>
+  .hero {
+    padding-block: clamp(56px, 10vw, 120px) clamp(40px, 6vw, 72px);
+  }
+
+  h1 {
+    font-size: clamp(2.6rem, 6.4vw, 5rem);
+    line-height: 1.02;
+    margin: 18px 0 0;
+    max-width: 19ch;
+    letter-spacing: -0.02em;
+  }
+
+  h1 em {
+    color: var(--accent);
+  }
+
+  .lead {
+    max-width: 58ch;
+    margin: 26px 0 0;
+    font-size: 1.15rem;
+    color: var(--muted);
+  }
+
+  .acoes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 30px;
+  }
+
+  .secao {
+    padding-top: clamp(40px, 7vw, 80px);
+    scroll-margin-top: 64px;
+  }
+
+  .secao h2 {
+    font-size: clamp(2.2rem, 4.5vw, 3.2rem);
+    line-height: 1.05;
+    margin: 0;
+  }
+
+  .secao-topo {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 8px 24px;
+    margin-bottom: 28px;
+  }
+
+  .secao-topo p {
+    margin: 0;
+    color: var(--faint);
+    font-size: 0.92rem;
+  }
+
+  .grade {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 22px;
+  }
+
+  @media (min-width: 760px) {
+    .grade {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+
+  .sobre {
+    display: grid;
+    gap: 20px;
+  }
+
+  @media (min-width: 900px) {
+    .sobre {
+      grid-template-columns: 1fr 2fr;
+      gap: 40px;
+    }
+  }
+
+  .sobre-texto p {
+    margin: 0 0 16px;
+    max-width: 62ch;
+    color: var(--muted);
+  }
+
+  .ferramentas {
+    margin-top: 22px;
+  }
+
+  .contato {
+    text-align: left;
+  }
+
+  .contato > p {
+    max-width: 52ch;
+    color: var(--muted);
+    margin: 14px 0 0;
+  }
+</style>

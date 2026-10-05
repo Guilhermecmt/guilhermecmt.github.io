@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1000" viewBox="0 0 1600 1000" role="img" aria-label="As três camadas de isolamento entre organizações da plataforma">
+  <defs>
+    <linearGradient id="fundo" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0f1022"/>
+      <stop offset="1" stop-color="#1a1240"/>
+    </linearGradient>
+    <radialGradient id="brilho" cx="0.78" cy="0.12" r="0.6">
+      <stop offset="0" stop-color="#6366f1" stop-opacity="0.35"/>
+      <stop offset="1" stop-color="#6366f1" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="camada" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.07"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0.03"/>
+    </linearGradient>
+  </defs>
+  <rect width="1600" height="1000" fill="url(#fundo)"/>
+  <rect width="1600" height="1000" fill="url(#brilho)"/>
+
+  <g font-family="Inter, 'Segoe UI', system-ui, sans-serif">
+    <text x="120" y="150" fill="#a5b4fc" font-size="26" font-weight="600" letter-spacing="4">ISOLAMENTO MULTI-TENANT</text>
+    <text x="120" y="215" fill="#ffffff" font-size="52" font-weight="600">Três camadas, nenhuma confia na anterior</text>
+
+    <!-- organizações -->
+    <g>
+      <rect x="120" y="290" width="380" height="84" rx="42" fill="#22d3ee" fill-opacity="0.12" stroke="#22d3ee" stroke-opacity="0.6"/>
+      <circle cx="166" cy="332" r="12" fill="#22d3ee"/>
+      <text x="192" y="342" fill="#e0f7fb" font-size="28" font-weight="500">academia-vento</text>
+      <rect x="540" y="290" width="440" height="84" rx="42" fill="#f472b6" fill-opacity="0.12" stroke="#f472b6" stroke-opacity="0.6"/>
+      <circle cx="586" cy="332" r="12" fill="#f472b6"/>
+      <text x="612" y="342" fill="#fde7f3" font-size="28" font-weight="500">universidade-atlas</text>
+    </g>
+
+    <!-- camadas -->
+    <g>
+      <rect x="120" y="430" width="1360" height="130" rx="22" fill="url(#camada)" stroke="#ffffff" stroke-opacity="0.12"/>
+      <text x="170" y="487" fill="#a5b4fc" font-size="24" font-weight="700">1</text>
+      <text x="220" y="487" fill="#ffffff" font-size="32" font-weight="600">Resolução pelo domínio</text>
+      <text x="220" y="528" fill="#c7c9e6" font-size="24">Web e API descobrem a organização pelo Host, cada uma por conta própria</text>
+
+      <rect x="120" y="590" width="1360" height="130" rx="22" fill="url(#camada)" stroke="#ffffff" stroke-opacity="0.12"/>
+      <text x="170" y="647" fill="#a5b4fc" font-size="24" font-weight="700">2</text>
+      <text x="220" y="647" fill="#ffffff" font-size="32" font-weight="600">Contexto em toda consulta</text>
+      <text x="220" y="688" fill="#c7c9e6" font-size="24">O ORM injeta o tenant em cada query; sem contexto, a consulta dá erro</text>
+
+      <rect x="120" y="750" width="1360" height="130" rx="22" fill="url(#camada)" stroke="#a5b4fc" stroke-opacity="0.5"/>
+      <text x="170" y="807" fill="#a5b4fc" font-size="24" font-weight="700">3</text>
+      <text x="220" y="807" fill="#ffffff" font-size="32" font-weight="600">Row-Level Security no PostgreSQL</text>
+      <text x="220" y="848" fill="#c7c9e6" font-size="24">Sem o tenant na transação, o banco devolve zero linhas</text>
+    </g>
+
+    <g font-family="ui-monospace, 'Cascadia Code', Consolas, monospace" font-size="22" fill="#8b8fc7">
+      <text x="1460" y="512" text-anchor="end">Host</text>
+      <text x="1460" y="672" text-anchor="end">tenant_id</text>
+      <text x="1460" y="832" text-anchor="end">FORCE RLS</text>
+    </g>
+  </g>
+</svg>
