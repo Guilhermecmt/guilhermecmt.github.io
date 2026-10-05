@@ -1,0 +1,66 @@
+---
+// Papel de parede: uma colina verde sob o céu, desenhada aqui mesmo (não é a foto do XP).
+// As cores vêm de variáveis CSS, então o mesmo desenho vira dia, pôr do sol ou noite.
+const estrelas = Array.from({ length: 70 }, (_, i) => {
+  // Pseudoaleatório fixo, para o HTML sair igual a cada build.
+  const a = Math.sin(i * 12.9898) * 43758.5453;
+  const b = Math.sin(i * 78.233) * 12543.1234;
+  return { x: (a - Math.floor(a)) * 1600, y: (b - Math.floor(b)) * 520, r: 0.6 + ((a * 7) % 1 + 1) % 1 * 1.4 };
+});
+---
+
+<div class="papel" aria-hidden="true">
+  <svg viewBox="0 0 1600 1000" preserveAspectRatio="xMidYMid slice">
+    <defs>
+      <linearGradient id="pp-ceu" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" style="stop-color:var(--ceu-1)"></stop>
+        <stop offset=".55" style="stop-color:var(--ceu-2)"></stop>
+        <stop offset=".78" style="stop-color:var(--ceu-3)"></stop>
+      </linearGradient>
+      <linearGradient id="pp-colina" x1="0" y1="0" x2=".2" y2="1">
+        <stop offset="0" style="stop-color:var(--colina-1)"></stop>
+        <stop offset=".5" style="stop-color:var(--colina-2)"></stop>
+        <stop offset="1" style="stop-color:var(--colina-3)"></stop>
+      </linearGradient>
+      <linearGradient id="pp-fundo" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" style="stop-color:var(--colina-fundo)"></stop>
+        <stop offset="1" style="stop-color:var(--colina-3)"></stop>
+      </linearGradient>
+      <radialGradient id="pp-luz" cx=".38" cy=".62" r=".5">
+        <stop offset="0" stop-color="#fff" stop-opacity=".28"></stop>
+        <stop offset="1" stop-color="#fff" stop-opacity="0"></stop>
+      </radialGradient>
+      <radialGradient id="pp-astro" cx=".5" cy=".5" r=".5">
+        <stop offset="0" style="stop-color:var(--astro)"></stop>
+        <stop offset=".24" style="stop-color:var(--astro)"></stop>
+        <stop offset=".27" style="stop-color:var(--astro)" stop-opacity=".32"></stop>
+        <stop offset="1" style="stop-color:var(--astro)" stop-opacity="0"></stop>
+      </radialGradient>
+      <filter id="pp-nuvem" x="-30%" y="-60%" width="160%" height="220%">
+        <feGaussianBlur stdDeviation="16"></feGaussianBlur>
+      </filter>
+    </defs>
+
+    <rect width="1600" height="1000" fill="url(#pp-ceu)"></rect>
+
+    <g class="estrelas" fill="#fff">
+      {estrelas.map((e) => <circle cx={e.x.toFixed(1)} cy={e.y.toFixed(1)} r={e.r.toFixed(2)} />)}
+    </g>
+
+    <circle class="astro" cx="1220" cy="300" r="120" fill="url(#pp-astro)"></circle>
+
+    <g filter="url(#pp-nuvem)" style="fill:var(--nuvem)">
+      <ellipse cx="260" cy="180" rx="210" ry="46"></ellipse>
+      <ellipse cx="380" cy="150" rx="120" ry="40"></ellipse>
+      <ellipse cx="900" cy="120" rx="260" ry="40"></ellipse>
+      <ellipse cx="1010" cy="96" rx="130" ry="36"></ellipse>
+      <ellipse cx="1360" cy="230" rx="200" ry="38"></ellipse>
+      <ellipse cx="640" cy="330" rx="170" ry="28"></ellipse>
+      <ellipse cx="1500" cy="420" rx="160" ry="26"></ellipse>
+    </g>
+
+    <path d="M0 640C220 600 420 585 640 610S1100 690 1320 660 1540 610 1600 615V1000H0Z" fill="url(#pp-fundo)"></path>
+    <path d="M0 770C250 640 520 560 820 585S1350 700 1600 820V1000H0Z" fill="url(#pp-colina)"></path>
+    <path d="M0 770C250 640 520 560 820 585S1350 700 1600 820V1000H0Z" fill="url(#pp-luz)"></path>
+  </svg>
+</div>

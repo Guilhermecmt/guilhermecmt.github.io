@@ -1,0 +1,51 @@
+---
+// Moldura de janela no estilo Luna. O gerenciador de janelas (src/scripts/os.ts) cuida de abrir,
+// arrastar, redimensionar, minimizar no Dock e dar zoom.
+import Ic from './Ic.astro';
+
+interface Props {
+  id: string;
+  titulo: string;
+  icone: string;
+  // Nome do "aplicativo" que aparece em negrito na barra de menus quando a janela está em foco.
+  app: string;
+  largura?: number;
+  altura?: number | 'auto';
+  url?: string;
+  // Janelas que só fazem sentido com JavaScript (terminal, lixeira) somem na versão sem script.
+  soJs?: boolean;
+  class?: string;
+}
+
+const { id, titulo, icone, app, largura = 640, altura = 480, url, soJs = false, class: classe } = Astro.props;
+---
+
+<section
+  class:list={['janela', classe]}
+  id={`janela-${id}`}
+  data-janela={id}
+  data-titulo={titulo}
+  data-app={app}
+  data-icone={icone}
+  data-w={largura}
+  data-h={altura}
+  data-url={url}
+  data-so-js={soJs ? '' : undefined}
+  role="dialog"
+  aria-labelledby={`janela-${id}-t`}
+  tabindex="-1"
+>
+  <header class="janela-barra">
+    <Ic id={icone} class="janela-icone" />
+    <h2 class="janela-titulo" id={`janela-${id}-t`}>{titulo}</h2>
+    <div class="janela-botoes">
+      <button class="jb min" type="button" data-acao="minimizar" aria-label="Minimizar"></button>
+      <button class="jb max" type="button" data-acao="zoom" aria-label="Maximizar"></button>
+      <button class="jb fechar" type="button" data-acao="fechar" aria-label="Fechar"></button>
+    </div>
+  </header>
+  <div class="janela-corpo">
+    <slot />
+  </div>
+  <div class="janela-alca" aria-hidden="true"></div>
+</section>

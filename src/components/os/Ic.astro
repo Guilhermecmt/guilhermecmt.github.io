@@ -1,0 +1,11 @@
+---
+// Um ícone do sprite. `id` é o símbolo inteiro: "i-pasta", "p-nous", "g-lupa"...
+interface Props {
+  id: string;
+  class?: string;
+}
+
+const { id, class: classe } = Astro.props;
+---
+
+<span class:list={['ic-box', classe]} aria-hidden="true"><svg class="ic"><use href={`#${id}`}></use></svg></span>

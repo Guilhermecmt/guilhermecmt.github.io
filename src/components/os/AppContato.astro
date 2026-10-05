@@ -1,0 +1,38 @@
+---
+// Correio: uma mensagem nova já endereçada. "Enviar" abre o programa de e-mail da pessoa com o
+// assunto e o texto preenchidos (mailto:), sem servidor no meio.
+import Ic from './Ic.astro';
+import { site } from '../../site.config';
+---
+
+<form class="correio" data-correio style="display:contents" action={`mailto:${site.email}`} method="get" enctype="text/plain">
+  <div class="correio-barra">
+    <button class="botao-grande" type="submit"><Ic id="i-enviar" /> Enviar</button>
+    <button class="botao-grande" type="button" data-cmd="copiar-email"><Ic id="i-copiar" /> Copiar e-mail</button>
+    {
+      site.linkedin && (
+        <a class="botao-grande" href={site.linkedin} target="_blank" rel="noopener me">
+          <Ic id="i-linkedin" /> LinkedIn
+        </a>
+      )
+    }
+    {
+      site.github && (
+        <a class="botao-grande" href={site.github} target="_blank" rel="noopener me">
+          <Ic id="i-github" /> GitHub
+        </a>
+      )
+    }
+  </div>
+  <div class="correio-campos">
+    <label for="correio-para">Para:</label>
+    <input id="correio-para" type="text" value={site.email} readonly />
+    <label for="correio-assunto">Assunto:</label>
+    <input id="correio-assunto" name="subject" type="text" value="Vi seu portfólio" />
+  </div>
+  <label class="sr-only" for="correio-msg">Mensagem</label>
+  <textarea id="correio-msg" class="correio-msg" name="body" placeholder="Olá, Guilherme! Quero conversar sobre..."></textarea>
+  <div class="correio-pe">
+    <span>Quer ver o código de algum projeto privado? Libero o acesso ao repositório para avaliação.</span>
+  </div>
+</form>

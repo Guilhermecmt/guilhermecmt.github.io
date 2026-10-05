@@ -1,0 +1,512 @@
+---
+// O sistema inteiro: papel de parede, barra de menus, ícones, janelas, Dock e as sobreposições
+// (Spotlight, Quick Look, menu iniciar, central de controle). Todas as janelas saem no HTML, para quem
+// lê a página sem JavaScript (e para buscadores); o script só decide quais aparecem e onde.
+import { getImage } from 'astro:assets';
+import { getCollection } from 'astro:content';
+import { site } from '../../site.config';
+import Sprite from './Sprite.astro';
+import Papel from './Papel.astro';
+import Janela from './Janela.astro';
+import Ic from './Ic.astro';
+import AppProjetos from './AppProjetos.astro';
+import AppProjeto from './AppProjeto.astro';
+import AppSobre from './AppSobre.astro';
+import AppContato from './AppContato.astro';
+
+interface Props {
+  // Janelas abertas ao carregar, no computador e no celular.
+  inicial?: string[];
+  inicialMovel?: string[];
+  erro404?: boolean;
+}
+
+const { inicial = ['sobre', 'projetos'], inicialMovel = [], erro404 = false } = Astro.props;
+
+const projetos = (await getCollection('projetos')).sort((a, b) => a.data.ordem - b.data.ordem);
+const capas = await Promise.all(
+  projetos.map((p) => (p.data.capa ? getImage({ src: p.data.capa, width: 960, format: 'webp' }) : null)),
+);
+
+const dados = {
+  nome: site.nome,
+  papel: site.papel,
+  email: site.email,
+  github: site.github,
+  linkedin: site.linkedin,
+  projetos: projetos.map((p, i) => ({
+    slug: p.id,
+    titulo: p.data.titulo,
+    resumo: p.data.resumo,
+    tipo: p.data.tipo,
+    situacao: p.data.situacao,
+    codigo: p.data.codigo,
+    stack: p.data.stack,
+    demo: p.data.links.demo ?? null,
+    repo: p.data.links.codigo ?? null,
+    capa: capas[i]?.src ?? null,
+    capaAlt: p.data.capaAlt ?? '',
+  })),
+};
+
+const apps = [
+  { id: 'projetos', nome: 'Projetos', icone: 'i-pasta' },
+  { id: 'sobre', nome: 'Sobre mim', icone: 'i-usuario' },
+  { id: 'contato', nome: 'Contato', icone: 'i-correio' },
+  { id: 'terminal', nome: 'Terminal', icone: 'i-terminal' },
+  { id: 'leiame', nome: 'LEIA-ME.txt', icone: 'i-bloco' },
+];
+
+const leiaMe = `LEIA-ME.txt
+===========
+
+Bem-vindo ao MacêdOS XP, o portfólio de ${site.nome}.
+A pele é do Windows XP. O jeito de usar é do Mac.
+
+COMO NAVEGAR
+  - A pasta Projetos tem os ${projetos.length} projetos. Duplo clique abre um deles.
+  - Selecione um projeto e aperte ESPAÇO para espiar (Quick Look).
+  - O Dock, lá embaixo, abre as janelas. Passe o mouse para ver a lupa.
+  - O botão verde "iniciar" fica onde o Mac põe a maçã.
+  - Arraste as janelas pela barra de título. Duplo clique nela dá zoom.
+  - O botão de minimizar manda a janela para o Dock, como no Mac.
+
+ATALHOS
+  Ctrl+K ou /    Buscar qualquer coisa (Spotlight)
+  F3             Mission Control: todas as janelas lado a lado
+  Espaço         Espiar o projeto selecionado
+  Esc            Fechar a busca, os menus e o Quick Look
+
+APARÊNCIA
+  Na central de controle (o ícone de chaves, no alto à direita) você escolhe
+  o esquema de cores do XP: Azul, Oliva ou Prateado. O Noir é o modo escuro.
+  O céu do papel de parede acompanha a hora do dia.
+
+No celular, o sistema vira uma tela inicial de iPhone.
+Cada projeto tem endereço próprio: dá para mandar o link de um deles.
+
+Feito à mão com Astro. Sem rastreadores.`;
+---
+
+<div
+  id="os"
+  data-inicial={JSON.stringify(inicial)}
+  data-inicial-movel={JSON.stringify(inicialMovel)}
+  data-erro404={erro404 ? '' : undefined}
+>
+  <Sprite slugs={projetos.map((p) => p.id)} />
+  <script is:inline type="application/json" id="os-dados" set:html={JSON.stringify(dados)} />
+  <Papel />
+
+  <!-- Barra de menus: o lugar e o comportamento são do Mac; a pele, do XP. -->
+  <header class="barra-menu">
+    <button class="iniciar-btn" type="button" data-pop aria-controls="menu-iniciar" aria-expanded="false">
+      <svg class="logo" aria-hidden="true"><use href="#i-logo"></use></svg>
+      iniciar
+    </button>
+    <nav class="menus" aria-label="Menus">
+      <button class="menu-rotulo app" type="button" data-pop aria-controls="menu-app" aria-expanded="false" data-app-nome>Explorador</button>
+      <button class="menu-rotulo" type="button" data-pop aria-controls="menu-arquivo" aria-expanded="false">Arquivo</button>
+      <button class="menu-rotulo" type="button" data-pop aria-controls="menu-ver" aria-expanded="false">Ver</button>
+      <button class="menu-rotulo" type="button" data-pop aria-controls="menu-janela" aria-expanded="false">Janela</button>
+      <button class="menu-rotulo" type="button" data-pop aria-controls="menu-ajuda" aria-expanded="false">Ajuda</button>
+    </nav>
+    <div class="direita">
+      <button class="icone-barra" type="button" data-cmd="mc" aria-label="Mission Control (F3)" title="Mission Control (F3)">
+        <svg class="ic" aria-hidden="true"><use href="#g-mc"></use></svg>
+      </button>
+      <button class="icone-barra" type="button" data-cmd="busca" aria-label="Buscar (Ctrl+K)" title="Buscar (Ctrl+K)">
+        <svg class="ic" aria-hidden="true"><use href="#g-lupa"></use></svg>
+      </button>
+      <button class="icone-barra" type="button" data-pop aria-controls="central" aria-expanded="false" aria-label="Central de controle" title="Central de controle">
+        <svg class="ic" aria-hidden="true"><use href="#g-controle"></use></svg>
+      </button>
+      <div class="bandeja"><span class="relogio" data-relogio></span></div>
+    </div>
+  </header>
+
+  <div class="menu-lista" id="menu-app" role="menu" hidden>
+    <button type="button" role="menuitem" data-cmd="abrir:sobre">Sobre o Guilherme</button>
+    <button type="button" role="menuitem" data-cmd="central">Central de controle…</button>
+    <hr />
+    <button type="button" role="menuitem" data-cmd="esconder-tudo">Minimizar todas as janelas</button>
+    <hr />
+    <button type="button" role="menuitem" data-cmd="logoff">Fazer logoff…</button>
+    <button type="button" role="menuitem" data-cmd="desligar">Desligar…</button>
+  </div>
+  <div class="menu-lista" id="menu-arquivo" role="menu" hidden>
+    <button type="button" role="menuitem" data-cmd="abrir:projetos">Abrir Projetos</button>
+    <button type="button" role="menuitem" data-cmd="abrir:contato">Nova mensagem</button>
+    <button type="button" role="menuitem" data-cmd="abrir:terminal">Novo terminal</button>
+    <hr />
+    <button type="button" role="menuitem" data-cmd="fechar" data-requer-janela>Fechar janela</button>
+    <button type="button" role="menuitem" data-cmd="fechar-tudo" data-requer-janela>Fechar todas</button>
+  </div>
+  <div class="menu-lista" id="menu-ver" role="menu" hidden>
+    <button type="button" role="menuitemradio" data-cmd="vista:icones" aria-checked="true">Como ícones</button>
+    <button type="button" role="menuitemradio" data-cmd="vista:lista" aria-checked="false">Como lista</button>
+    <button type="button" role="menuitemradio" data-cmd="vista:galeria" aria-checked="false">Como galeria</button>
+    <hr />
+    <button type="button" role="menuitem" data-cmd="espiar">Espiar projeto <kbd>Espaço</kbd></button>
+    <button type="button" role="menuitem" data-cmd="mc">Mission Control <kbd>F3</kbd></button>
+  </div>
+  <div class="menu-lista" id="menu-janela" role="menu" hidden>
+    <button type="button" role="menuitem" data-cmd="minimizar" data-requer-janela>Minimizar</button>
+    <button type="button" role="menuitem" data-cmd="zoom" data-requer-janela>Zoom</button>
+    <hr />
+    <div data-lista-janelas></div>
+  </div>
+  <div class="menu-lista" id="menu-ajuda" role="menu" hidden>
+    <button type="button" role="menuitem" data-cmd="busca">Buscar… <kbd>Ctrl K</kbd></button>
+    <button type="button" role="menuitem" data-cmd="abrir:leiame">LEIA-ME e atalhos</button>
+  </div>
+
+  <!-- Menu iniciar -->
+  <div class="menu-iniciar" id="menu-iniciar" role="menu" aria-label="Menu iniciar" hidden>
+    <div class="mi-cab">
+      <Ic id="i-avatar" class="avatar" />
+      {site.nome}
+    </div>
+    <div class="mi-corpo">
+      <div class="mi-col">
+        <button class="mi-item grande" type="button" role="menuitem" data-cmd="abrir:projetos">
+          <Ic id="i-pasta" /><span><b>Projetos</b><small>Explorador</small></span>
+        </button>
+        <button class="mi-item grande" type="button" role="menuitem" data-cmd="abrir:contato">
+          <Ic id="i-correio" /><span><b>Contato</b><small>Correio</small></span>
+        </button>
+        <hr />
+        {
+          projetos.map((p) => (
+            <button class="mi-item peq" type="button" role="menuitem" data-cmd={`projeto:${p.id}`}>
+              <Ic id={`p-${p.id}`} />
+              {p.data.titulo}
+            </button>
+          ))
+        }
+      </div>
+      <div class="mi-col dir">
+        <button class="mi-item" type="button" role="menuitem" data-cmd="abrir:sobre"><Ic id="i-usuario" /> Sobre mim</button>
+        <button class="mi-item" type="button" role="menuitem" data-cmd="abrir:leiame"><Ic id="i-bloco" /> LEIA-ME</button>
+        <button class="mi-item" type="button" role="menuitem" data-cmd="abrir:terminal"><Ic id="i-terminal" /> Terminal</button>
+        <hr />
+        {site.github && <a class="mi-item" role="menuitem" href={site.github} target="_blank" rel="noopener me"><Ic id="i-github" /> GitHub</a>}
+        {site.linkedin && <a class="mi-item" role="menuitem" href={site.linkedin} target="_blank" rel="noopener me"><Ic id="i-linkedin" /> LinkedIn</a>}
+        <hr />
+        <button class="mi-item" type="button" role="menuitem" data-cmd="central"><Ic id="i-controle" /> Central de controle</button>
+        <button class="mi-item" type="button" role="menuitem" data-cmd="busca"><Ic id="i-busca" /> Pesquisar</button>
+        <button class="mi-item" type="button" role="menuitem" data-cmd="mc"><Ic id="i-mc" /> Mission Control</button>
+      </div>
+    </div>
+    <div class="mi-rodape">
+      <button type="button" role="menuitem" data-cmd="logoff"><Ic id="i-logoff" /> Fazer logoff</button>
+      <button type="button" role="menuitem" data-cmd="desligar"><Ic id="i-desligar" /> Desligar</button>
+    </div>
+  </div>
+
+  <!-- Central de controle -->
+  <div class="central" id="central" role="dialog" aria-label="Central de controle" hidden>
+    <div class="cc-bloco">
+      <h3>Esquema de cores</h3>
+      <div class="cc-esquemas">
+        {
+          [
+            ['auto', 'Auto', 'linear-gradient(90deg,#0058ee 50%,#1a1a1a 50%)', 'linear-gradient(90deg,#ece9d8 50%,#2a2a2d 50%)'],
+            ['azul', 'Azul', '#0058ee', '#ece9d8'],
+            ['oliva', 'Oliva', '#94ab6a', '#ece9d8'],
+            ['prata', 'Prata', '#c6c9da', '#e8e8ef'],
+            ['noir', 'Noir', '#1a1a1a', '#2a2a2d'],
+          ].map(([valor, nome, topo, corpo]) => (
+            <button class="cc-esquema" type="button" data-cmd={`esquema:${valor}`} aria-pressed="false">
+              <span class="amostra" style={`background:${corpo}`}>
+                <i style={`background:${topo}`} />
+              </span>
+              {nome}
+            </button>
+          ))
+        }
+      </div>
+    </div>
+    <div class="cc-bloco">
+      <h3>Céu do papel de parede</h3>
+      <div class="cc-segmentos" role="group" aria-label="Céu do papel de parede">
+        <button type="button" data-cmd="ceu:dinamico" aria-pressed="false">Dinâmico</button>
+        <button type="button" data-cmd="ceu:dia" aria-pressed="false">Dia</button>
+        <button type="button" data-cmd="ceu:tarde" aria-pressed="false">Tarde</button>
+        <button type="button" data-cmd="ceu:noite" aria-pressed="false">Noite</button>
+      </div>
+    </div>
+    <div class="cc-bloco">
+      <label class="cc-chave">Reduzir movimento <input type="checkbox" data-movimento /></label>
+    </div>
+  </div>
+
+  <!-- Ícones da área de trabalho -->
+  <ul class="icones-mesa" aria-label="Área de trabalho">
+    {
+      apps.map((a) => (
+        <li>
+          <button class="icone-mesa" type="button" data-cmd-duplo={`abrir:${a.id}`}>
+            <Ic id={a.icone} />
+            <span>{a.nome}</span>
+          </button>
+        </li>
+      ))
+    }
+  </ul>
+  <button class="icone-mesa lixeira-mesa" type="button" data-cmd-duplo="abrir:lixeira">
+    <Ic id="i-lixeira-cheia" class="ic-lixeira" />
+    <span>Lixeira</span>
+  </button>
+
+  <div class="mc-veu" data-mc-veu></div>
+
+  <!-- Janelas -->
+  <main class="janelas" id="conteudo">
+    <Janela id="projetos" titulo="Projetos" icone="i-pasta" app="Explorador" largura={860} altura={560}>
+      <AppProjetos projetos={projetos} />
+    </Janela>
+
+    <Janela id="sobre" titulo="Sobre mim" icone="i-usuario" app="Sobre" largura={380} altura={600}>
+      <AppSobre totalProjetos={projetos.length} />
+    </Janela>
+
+    <Janela id="contato" titulo="Nova mensagem" icone="i-correio" app="Correio" largura={600} altura={500}>
+      <AppContato />
+    </Janela>
+
+    {
+      projetos.map((p, i) => (
+        <Janela
+          id={`projeto-${p.id}`}
+          titulo={p.data.titulo}
+          icone={`p-${p.id}`}
+          app={p.data.titulo}
+          largura={940}
+          altura={760}
+          url={`/projetos/${p.id}/`}
+          class="janela-projeto"
+        >
+          <AppProjeto projeto={p} proximo={projetos[(i + 1) % projetos.length]} />
+        </Janela>
+      ))
+    }
+
+    <Janela id="terminal" titulo="Terminal" icone="i-terminal" app="Terminal" largura={680} altura={420} soJs>
+      <div class="terminal" data-terminal>
+        <pre data-saida>MacêdOS XP [versão 2026]
+(C) {site.nome}. Digite <span class="destaque">ajuda</span> para ver os comandos.
+
+</pre>
+        <form class="linha" data-entrada>
+          <span>C:\Usuários\Guilherme&gt;&nbsp;</span>
+          <input type="text" aria-label="Comando" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="send" />
+        </form>
+      </div>
+    </Janela>
+
+    <Janela id="leiame" titulo="LEIA-ME.txt - Bloco de notas" icone="i-bloco" app="Bloco de notas" largura={600} altura={520}>
+      <pre class="bloco" tabindex="0">{leiaMe}</pre>
+    </Janela>
+
+    <Janela id="lixeira" titulo="Lixeira" icone="i-lixeira-cheia" app="Lixeira" largura={480} altura={320} soJs>
+      <div class="barra-ferramentas">
+        <button class="xp-btn" type="button" data-cmd="esvaziar-lixeira" data-esvaziar>Esvaziar Lixeira</button>
+      </div>
+      <div class="lixeira-itens" data-lixeira>
+        <button class="pr-item" type="button" data-cmd-duplo="blog-antigo">
+          <span class="cel-nome"><Ic id="i-documento" /><span class="nome">portfolio-v1 (parecia um blog).html</span></span>
+          <span class="tipo">Excluído em 05/10/2026</span>
+        </button>
+        <p class="lixeira-vazia" hidden>A Lixeira está vazia.</p>
+      </div>
+      <div class="barra-status"><span data-lixeira-status>1 objeto</span></div>
+    </Janela>
+
+    <Janela id="dialogo" titulo={erro404 ? 'Endereço não encontrado' : 'MacêdOS XP'} icone="i-info" app="MacêdOS XP" largura={420} altura="auto" soJs={!erro404}>
+      <div class="dialogo">
+        <span data-dlg-icone><Ic id={erro404 ? 'i-erro' : 'i-info'} /></span>
+        <div data-dlg-texto>
+          {
+            erro404 && (
+              <>
+                <p>
+                  O MacêdOS XP não encontrou <code data-caminho>esta página</code>.
+                </p>
+                <p>O endereço pode ter mudado. Os projetos estão todos na pasta Projetos.</p>
+              </>
+            )
+          }
+        </div>
+      </div>
+      <div class="dialogo-acoes" data-dlg-acoes>
+        {erro404 && <a class="xp-btn primario" href="/" data-cmd="abrir:projetos">Abrir Projetos</a>}
+        <button class="xp-btn" type="button" data-cmd="fechar:dialogo">OK</button>
+      </div>
+    </Janela>
+  </main>
+
+  <!-- Dock -->
+  <nav class="dock" aria-label="Dock">
+    <div class="dock-grupo" data-dock-fixos>
+      {
+        apps.map((a) => (
+          <button class="dock-item" type="button" data-cmd={`abrir:${a.id}`} data-alvo={a.id}>
+            <Ic id={a.icone} />
+            <span class="dock-rotulo">{a.nome}</span>
+          </button>
+        ))
+      }
+    </div>
+    <div class="dock-sep" data-dock-sep hidden></div>
+    <div class="dock-grupo" data-dock-projetos>
+      {
+        projetos.map((p) => (
+          <button class="dock-item" type="button" data-cmd={`projeto:${p.id}`} data-alvo={`projeto-${p.id}`} hidden>
+            <Ic id={`p-${p.id}`} />
+            <span class="dock-rotulo">{p.data.titulo}</span>
+          </button>
+        ))
+      }
+    </div>
+    <div class="dock-bandeja">
+      <button class="dock-item" type="button" data-cmd="mc">
+        <Ic id="i-mc" />
+        <span class="dock-rotulo">Mission Control</span>
+      </button>
+      <button class="dock-item" type="button" data-cmd="abrir:lixeira" data-alvo="lixeira">
+        <Ic id="i-lixeira-cheia" class="ic-lixeira" />
+        <span class="dock-rotulo">Lixeira</span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- Celular: tela inicial -->
+  <div class="home" aria-label="Tela inicial">
+    <div class="home-status">
+      <span data-relogio-curto></span>
+      <span class="icones">
+        <svg aria-hidden="true"><use href="#g-wifi"></use></svg>
+        <svg aria-hidden="true"><use href="#g-bateria"></use></svg>
+      </span>
+    </div>
+    <section class="widget">
+      <header><svg class="logo" aria-hidden="true"><use href="#i-logo"></use></svg> MacêdOS XP</header>
+      <div class="w-corpo">
+        <Ic id="i-avatar" class="avatar" />
+        <div>
+          <h2>{site.nome}</h2>
+          <p>{site.papel}. {projetos.length} projetos na pasta Projetos.</p>
+        </div>
+      </div>
+    </section>
+    <ul class="home-grade">
+      <li><button class="app-ic" type="button" data-cmd="abrir:leiame"><Ic id="i-bloco" /><span class="rotulo">LEIA-ME</span></button></li>
+      <li><button class="app-ic" type="button" data-cmd="central"><Ic id="i-controle" /><span class="rotulo">Ajustes</span></button></li>
+      <li><button class="app-ic" type="button" data-cmd="abrir:lixeira"><Ic id="i-lixeira-cheia" class="ic-lixeira" /><span class="rotulo">Lixeira</span></button></li>
+      {
+        projetos.map((p) => (
+          <li>
+            <button class="app-ic app-projeto" type="button" data-cmd={`projeto:${p.id}`}>
+              <Ic id={`p-${p.id}`} />
+              <span class="rotulo">{p.data.titulo}</span>
+            </button>
+          </li>
+        ))
+      }
+    </ul>
+    <button class="home-busca" type="button" data-cmd="busca"><svg aria-hidden="true"><use href="#g-lupa"></use></svg> Buscar</button>
+    <div class="home-dock">
+      {
+        apps.slice(0, 4).map((a) => (
+          <button class="app-ic" type="button" data-cmd={`abrir:${a.id}`} aria-label={a.nome}>
+            <Ic id={a.icone} />
+            <span class="rotulo">{a.nome}</span>
+          </button>
+        ))
+      }
+    </div>
+  </div>
+  <button class="barra-home" type="button" data-barra-home aria-label="Voltar à tela inicial"></button>
+
+  <!-- Spotlight -->
+  <div class="busca" data-busca hidden>
+    <div class="busca-painel" role="dialog" aria-label="Buscar">
+      <div class="busca-campo">
+        <Ic id="i-busca" />
+        <input type="text" placeholder="Buscar projetos, tecnologias e apps" aria-label="Buscar" aria-controls="busca-lista" autocomplete="off" spellcheck="false" data-busca-campo />
+        <kbd>Esc</kbd>
+      </div>
+      <div class="busca-res vazio" data-busca-res>
+        <ul class="busca-lista" id="busca-lista" role="listbox" data-busca-lista></ul>
+        <div class="busca-prev" data-busca-prev></div>
+      </div>
+      <p class="busca-vazia" data-busca-vazia hidden>Nada encontrado.</p>
+    </div>
+  </div>
+
+  <!-- Quick Look -->
+  <div class="espiar" data-espiar hidden>
+    <div class="espiar-painel" role="dialog" aria-labelledby="espiar-titulo">
+      <div class="espiar-barra">
+        <button class="jb fechar" type="button" data-cmd="fechar-espiar" aria-label="Fechar"></button>
+        <h2 id="espiar-titulo" data-espiar-titulo></h2>
+        <button class="xp-btn primario" type="button" data-cmd="abrir-espiado">Abrir</button>
+      </div>
+      <div class="espiar-corpo">
+        <img alt="" data-espiar-img decoding="async" />
+        <div class="espiar-info">
+          <span data-espiar-icone></span>
+          <div>
+            <h3 data-espiar-nome></h3>
+            <p data-espiar-resumo></p>
+          </div>
+        </div>
+        <p class="espiar-dica">← → para trocar de projeto · Espaço ou Esc para fechar · Enter abre</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Balão de notificação -->
+  <div class="balao" data-balao role="status" hidden>
+    <button class="balao-fechar" type="button" aria-label="Fechar aviso">✕</button>
+    <strong><Ic id="i-info" /> Bem-vindo ao MacêdOS XP</strong>
+    <p data-balao-texto>
+      A pele é do XP, o jeito de usar é do Mac. Aperte <kbd>Ctrl</kbd> <kbd>K</kbd> para buscar ou
+      clique aqui para ler o LEIA-ME.
+    </p>
+  </div>
+
+  <!-- Inicialização -->
+  <div class="boot" data-boot hidden>
+    <div class="boot-centro">
+      <div class="marca-os">
+        <svg class="logo" aria-hidden="true"><use href="#i-logo"></use></svg>
+        <span class="nome"><small>{site.nome}</small>MacêdOS<sup>xp</sup></span>
+      </div>
+      <div class="progresso-xp" aria-hidden="true"><i></i><i></i><i></i></div>
+    </div>
+    <div class="boot-rodape"><span>Copyright © {site.nome}</span><i>Pele de XP, alma de Mac</i></div>
+  </div>
+
+  <!-- Desligar -->
+  <div class="desligar-veu" data-desligar hidden>
+    <div class="desligar-caixa" role="dialog" aria-labelledby="desligar-t">
+      <header><span id="desligar-t">Desligar o computador</span><svg class="logo" aria-hidden="true"><use href="#i-logo"></use></svg></header>
+      <div class="opcoes">
+        <button type="button" data-cmd="desligar-logoff"><Ic id="i-logoff" /> Fazer logoff</button>
+        <button type="button" data-cmd="desligar-agora"><Ic id="i-desligar" /> Desligar</button>
+        <button type="button" data-cmd="reiniciar"><Ic id="i-reiniciar" /> Reiniciar</button>
+      </div>
+      <footer><span></span><button class="xp-btn" type="button" data-cmd="cancelar-desligar">Cancelar</button></footer>
+    </div>
+  </div>
+  <div class="desligada" data-desligada hidden>
+    <p>Agora é seguro fechar esta aba.</p>
+    <button type="button" data-cmd="ligar" aria-label="Ligar de novo"><Ic id="i-desligar" /></button>
+  </div>
+</div>
+
+<script>
+  import '../../scripts/os';
+</script>

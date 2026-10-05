@@ -1,0 +1,237 @@
+/*
+  Tokens do MacêdOS XP. Cada esquema do XP (Azul, Oliva, Prateado) e o escuro (Noir) é um conjunto
+  de variáveis em <html data-esquema>. O céu do papel de parede fica em <html data-ceu>.
+*/
+
+:root {
+  --fonte-ui: Tahoma, 'Segoe UI', Verdana, Geneva, system-ui, sans-serif;
+  --fonte-titulo: 'Trebuchet MS', 'Segoe UI', system-ui, sans-serif;
+  --fonte-texto: 'Inter Variable', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  --fonte-mono: 'Lucida Console', Consolas, 'SF Mono', Menlo, monospace;
+
+  --menu-h: 28px;
+  --mola: cubic-bezier(0.2, 0.9, 0.25, 1.05);
+
+  /* Azul (Luna) */
+  --titulo-ativo: linear-gradient(180deg, #0997ff 0%, #0053ee 8%, #0050ee 40%, #0066ff 88%, #0066ff 93%, #005bff 95%, #003dd7 96%, #003dd7 100%);
+  --titulo-inativo: linear-gradient(180deg, #a9c1f2 0%, #7f9fe8 8%, #7a96df 40%, #8aa7ee 88%, #7f9de9 95%, #6d88d6 100%);
+  --titulo-texto: #fff;
+  --titulo-texto-inativo: #e4ebfb;
+  --titulo-sombra: 1px 1px 0 #0f1089;
+  --moldura: #0831d9;
+  --moldura-inativa: #7d97e4;
+  --botao-janela: radial-gradient(circle at 90% 90%, #0054e9 0%, #2263d5 55%, #4479e4 70%, #a3bbec 90%, #fff 100%);
+  --botao-fechar: radial-gradient(circle at 90% 90%, #cc4600 0%, #dc6527 55%, #cd7546 70%, #ffccb2 90%, #fff 100%);
+  --botao-glifo: #fff;
+  --botao-borda: #fff;
+
+  --barra: linear-gradient(180deg, #1f2f86 0, #3165c4 3%, #3682e5 6%, #4490e6 10%, #3883e5 12%, #2b71e0 15%, #2663da 18%, #235bd6 20%, #2258d5 23%, #2157d6 38%, #245ddb 54%, #2562df 86%, #245fdc 89%, #2158d4 92%, #1d4ec0 95%, #1941a5 98%);
+  --barra-vidro: linear-gradient(180deg, rgb(70 140 240 / 0.9), rgb(34 90 214 / 0.86) 55%, rgb(28 74 190 / 0.9));
+  --barra-texto: #fff;
+  --barra-sombra: 0 1px 1px rgb(0 0 0 / 0.45);
+  --bandeja: linear-gradient(180deg, #0c59b9 1%, #139ee9 6%, #18b5f2 10%, #139beb 14%, #1290e8 19%, #0d8dea 63%, #0d9ff1 81%, #0f9eed 88%, #119be9 91%, #1392e2 94%, #137ed7 97%, #095bc9 100%);
+  --bandeja-borda: #092e8a;
+  --bandeja-texto: #fff;
+
+  --face: #ece9d8;
+  --face-barra: linear-gradient(180deg, #fefefe 0%, #f4f2e8 60%, #e6e2cf 100%);
+  --conteudo: #fff;
+  --texto: #1b1b1f;
+  --suave: #4f5163;
+  --fraco: #7c7d8c;
+  --linha: #d4d0c0;
+  --linha-forte: #aca899;
+  --campo-borda: #7f9db9;
+  --selecao: #316ac5;
+  --selecao-texto: #fff;
+  --selecao-suave: rgb(49 106 197 / 0.16);
+  --acento: #0a5bd8;
+  --acento-texto: #0646b4;
+
+  --painel: linear-gradient(180deg, #7ba2e7 0%, #6375d6 100%);
+  --painel-cab: linear-gradient(90deg, #fff 30%, #c6d3f7 100%);
+  --painel-cab-texto: #215dc6;
+  --painel-corpo: #d6dff7;
+  --painel-link: #1b4fc7;
+
+  --primario: linear-gradient(180deg, #6aaaff 0%, #2f7bf0 46%, #1b63e0 54%, #3a85f5 100%);
+  --primario-borda: #0b3fb0;
+  --primario-texto: #fff;
+  --botao: linear-gradient(180deg, #fff 0%, #ecebe6 86%, #d6d0c5 100%);
+  --botao-borda-xp: #003c74;
+  --botao-texto: #000;
+  --botao-hover: inset 0 0 0 2px #f8b636;
+
+  --inicio-direita: #d3e5fa;
+  --inicio-direita-borda: #95bdee;
+  --dica: #ffffe1;
+  --dica-texto: #000;
+
+  --menu-fundo: rgb(255 255 255 / 0.93);
+  --menu-borda: rgb(0 0 0 / 0.18);
+  --vidro: rgb(255 255 255 / 0.78);
+
+  --sombra-janela: 0 24px 70px rgb(0 20 70 / 0.38), 0 8px 22px rgb(0 0 0 / 0.2);
+  --sombra-janela-inativa: 0 14px 40px rgb(0 20 70 / 0.22), 0 4px 12px rgb(0 0 0 / 0.12);
+
+  color-scheme: light;
+}
+
+:root[data-esquema='oliva'] {
+  --titulo-ativo: linear-gradient(180deg, #e2ebc8 0%, #b5c88f 6%, #a3b97b 30%, #94ab6a 70%, #a2b878 90%, #7b9050 100%);
+  --titulo-inativo: linear-gradient(180deg, #f1f5e4 0%, #d6e0bf 40%, #c7d3ab 100%);
+  --titulo-sombra: 1px 1px 0 #59683a;
+  --titulo-texto-inativo: #fbfcf6;
+  --moldura: #8fa565;
+  --moldura-inativa: #c7d3ab;
+  --botao-janela: radial-gradient(circle at 90% 90%, #5f7a30 0%, #87a057 55%, #a2b97c 70%, #dfe8c8 90%, #fff 100%);
+  --barra: linear-gradient(180deg, #8ea064 0, #d4e0b4 4%, #c0d19c 10%, #a9bd82 25%, #9db374 60%, #93a96a 88%, #7f9358 100%);
+  --barra-vidro: linear-gradient(180deg, rgb(196 212 160 / 0.92), rgb(150 171 106 / 0.9) 55%, rgb(127 147 88 / 0.92));
+  --barra-sombra: 0 1px 1px rgb(60 72 30 / 0.6);
+  --bandeja: linear-gradient(180deg, #e8efd3 0%, #cfdcae 50%, #b7c88f 100%);
+  --bandeja-borda: #7f9358;
+  --bandeja-texto: #2b3a12;
+  --selecao: #8a9a5b;
+  --selecao-suave: rgb(138 154 91 / 0.2);
+  --acento: #5a7a1c;
+  --acento-texto: #4a6614;
+  --painel: linear-gradient(180deg, #ccd9ad 0%, #a8bb87 100%);
+  --painel-cab: linear-gradient(90deg, #fff 30%, #dde6c7 100%);
+  --painel-cab-texto: #56662d;
+  --painel-corpo: #f4f7ea;
+  --painel-link: #4b5f1f;
+  --primario: linear-gradient(180deg, #c2d59a 0%, #95ad66 46%, #7f9a4e 54%, #9ab56a 100%);
+  --primario-borda: #5c7232;
+  --inicio-direita: #eef3dc;
+  --inicio-direita-borda: #c2d0a0;
+}
+
+:root[data-esquema='prata'] {
+  --titulo-ativo: linear-gradient(180deg, #fff 0%, #eceef6 10%, #d9dce8 45%, #c6c9da 85%, #a9adc4 100%);
+  --titulo-inativo: linear-gradient(180deg, #fbfbfd 0%, #ececf2 100%);
+  --titulo-texto: #111;
+  --titulo-texto-inativo: #7a7a8e;
+  --titulo-sombra: 0 1px 0 #fff;
+  --moldura: #b6b9cb;
+  --moldura-inativa: #dcdde6;
+  --botao-janela: radial-gradient(circle at 90% 90%, #a3a5ba 0%, #c8c9d6 55%, #e1e2ea 70%, #fff 100%);
+  --botao-glifo: #33354a;
+  --botao-borda: #8e91a8;
+  --barra: linear-gradient(180deg, #a7a7bb 0, #fff 4%, #f2f2f6 10%, #dcdce6 40%, #cacad8 85%, #a7a7bb 100%);
+  --barra-vidro: linear-gradient(180deg, rgb(255 255 255 / 0.85), rgb(220 220 232 / 0.82) 55%, rgb(196 197 214 / 0.86));
+  --barra-texto: #15151f;
+  --barra-sombra: 0 1px 0 rgb(255 255 255 / 0.8);
+  --bandeja: linear-gradient(180deg, #fbfbfd 0%, #e6e6ee 50%, #d2d3df 100%);
+  --bandeja-borda: #9a9cb2;
+  --bandeja-texto: #15151f;
+  --face: #e8e8ef;
+  --face-barra: linear-gradient(180deg, #fff 0%, #f1f1f6 60%, #dfe0e9 100%);
+  --linha: #d2d3dd;
+  --linha-forte: #a5a7ba;
+  --selecao: #5d6399;
+  --selecao-suave: rgb(93 99 153 / 0.16);
+  --acento: #4a5aa8;
+  --acento-texto: #3b4890;
+  --painel: linear-gradient(180deg, #e8e8f0 0%, #c4c5d6 100%);
+  --painel-cab: linear-gradient(90deg, #fff 30%, #e2e2ec 100%);
+  --painel-cab-texto: #3c3c58;
+  --painel-corpo: #f3f3f7;
+  --painel-link: #33355a;
+  --primario: linear-gradient(180deg, #fff 0%, #dfe1ee 46%, #c9ccdd 54%, #e3e5f0 100%);
+  --primario-borda: #7d81a0;
+  --primario-texto: #111;
+  --inicio-direita: #ececf3;
+  --inicio-direita-borda: #c5c6d6;
+}
+
+:root[data-esquema='noir'] {
+  --titulo-ativo: linear-gradient(180deg, #5c5c5c 0%, #262626 6%, #141414 45%, #1c1c1c 88%, #000 100%);
+  --titulo-inativo: linear-gradient(180deg, #3d3d3f 0%, #2a2a2c 100%);
+  --titulo-texto-inativo: #8e8e96;
+  --titulo-sombra: 1px 1px 0 #000;
+  --moldura: #111;
+  --moldura-inativa: #2e2e31;
+  --botao-janela: radial-gradient(circle at 90% 90%, #000 0%, #2b2b2b 55%, #4a4a4a 70%, #8a8a8a 90%, #ccc 100%);
+  --botao-borda: #9a9a9a;
+  --barra: linear-gradient(180deg, #000 0, #5a5a5a 3%, #2a2a2a 8%, #161616 40%, #0a0a0a 90%, #000 100%);
+  --barra-vidro: linear-gradient(180deg, rgb(52 52 56 / 0.86), rgb(20 20 22 / 0.86));
+  --bandeja: linear-gradient(180deg, #3b3b3e 0%, #232326 50%, #151517 100%);
+  --bandeja-borda: #000;
+  --face: #2a2a2d;
+  --face-barra: linear-gradient(180deg, #38383c 0%, #2e2e31 60%, #252528 100%);
+  --conteudo: #1c1c1f;
+  --texto: #ececf1;
+  --suave: #b2b2bd;
+  --fraco: #85858f;
+  --linha: #3b3b40;
+  --linha-forte: #55555c;
+  --campo-borda: #4a5a78;
+  --selecao: #2f62c0;
+  --selecao-suave: rgb(80 130 230 / 0.22);
+  --acento: #7fb0ff;
+  --acento-texto: #9cc2ff;
+  --painel: linear-gradient(180deg, #2e3240 0%, #1f222b 100%);
+  --painel-cab: linear-gradient(90deg, #3d4253 30%, #2b2f3b 100%);
+  --painel-cab-texto: #d7e3ff;
+  --painel-corpo: #262a34;
+  --painel-link: #a9c6ff;
+  --primario: linear-gradient(180deg, #5a8ff0 0%, #2a5fc8 46%, #1d4fb4 54%, #3a6fd8 100%);
+  --primario-borda: #0d2f75;
+  --botao: linear-gradient(180deg, #48484d 0%, #36363a 86%, #2a2a2e 100%);
+  --botao-borda-xp: #0b0b0d;
+  --botao-texto: #f2f2f5;
+  --inicio-direita: #262a34;
+  --inicio-direita-borda: #3a4050;
+  --dica: #2f2f24;
+  --dica-texto: #f4f1d0;
+  --menu-fundo: rgb(36 36 40 / 0.94);
+  --menu-borda: rgb(255 255 255 / 0.12);
+  --vidro: rgb(30 30 34 / 0.78);
+  --sombra-janela: 0 24px 70px rgb(0 0 0 / 0.6), 0 8px 22px rgb(0 0 0 / 0.4);
+  --sombra-janela-inativa: 0 14px 40px rgb(0 0 0 / 0.45), 0 4px 12px rgb(0 0 0 / 0.3);
+  color-scheme: dark;
+}
+
+/* Céu do papel de parede: dinâmico pela hora, como no Mac. */
+:root,
+:root[data-ceu='dia'] {
+  --ceu-1: #1659d0;
+  --ceu-2: #4d95ee;
+  --ceu-3: #b9dcff;
+  --colina-1: #86c84b;
+  --colina-2: #4c9a2a;
+  --colina-3: #2f6f19;
+  --colina-fundo: #5aa034;
+  --nuvem: rgb(255 255 255 / 0.92);
+  --estrelas: 0;
+  --astro: #fff8d6;
+  --astro-brilho: 0.0;
+}
+
+:root[data-ceu='tarde'] {
+  --ceu-1: #2f347f;
+  --ceu-2: #c9617e;
+  --ceu-3: #ffbf7a;
+  --colina-1: #8b9c3c;
+  --colina-2: #536b22;
+  --colina-3: #2c4313;
+  --colina-fundo: #6a7a34;
+  --nuvem: rgb(255 210 190 / 0.72);
+  --estrelas: 0.25;
+  --astro: #ffd38a;
+  --astro-brilho: 0.9;
+}
+
+:root[data-ceu='noite'] {
+  --ceu-1: #040a20;
+  --ceu-2: #0d1f4c;
+  --ceu-3: #22407c;
+  --colina-1: #1f4a2a;
+  --colina-2: #133420;
+  --colina-3: #0a2014;
+  --colina-fundo: #173a26;
+  --nuvem: rgb(150 170 225 / 0.16);
+  --estrelas: 1;
+  --astro: #e8eeff;
+  --astro-brilho: 0.75;
+}

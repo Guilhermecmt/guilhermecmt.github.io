@@ -1,0 +1,139 @@
+---
+// Visualizador de um projeto: o conteúdo que antes era a página /projetos/<slug>/.
+import { Image } from 'astro:assets';
+import { render, type CollectionEntry } from 'astro:content';
+import Ic from './Ic.astro';
+
+interface Props {
+  projeto: CollectionEntry<'projetos'>;
+  proximo: CollectionEntry<'projetos'>;
+}
+
+const { projeto, proximo } = Astro.props;
+const { data } = projeto;
+const { Content } = await render(projeto);
+const noAr = data.situacao === 'No ar' || data.situacao === 'Disponível';
+---
+
+<div class="rolagem projeto">
+  <article class="pj">
+    <header class="pj-cab">
+      <Ic id={`p-${projeto.id}`} />
+      <div>
+        <p class="pj-meta">{data.tipo} · {data.periodo}</p>
+        <h1>{data.titulo}</h1>
+        <p class="pj-resumo">{data.resumo}</p>
+        <div class="selos">
+          <span class:list={['selo', noAr && 'ok']}>{data.situacao}</span>
+          {
+            data.codigo === 'aberto' ? (
+              <span class="selo aberto">Código aberto</span>
+            ) : (
+              <span class="selo fechado" title="O código-fonte não é público. Acesso para avaliação sob pedido.">
+                Código privado
+              </span>
+            )
+          }
+        </div>
+        {
+          (data.links.demo || data.links.codigo || data.links.download) && (
+            <div class="pj-acoes">
+              {data.links.demo && (
+                <a class="xp-btn primario" href={data.links.demo} target="_blank" rel="noopener">
+                  Abrir a demonstração ↗
+                </a>
+              )}
+              {data.links.download && (
+                <a class="xp-btn primario" href={data.links.download} target="_blank" rel="noopener">
+                  Baixar ↗
+                </a>
+              )}
+              {data.links.codigo && (
+                <a class="xp-btn" href={data.links.codigo} target="_blank" rel="noopener">
+                  Código no GitHub ↗
+                </a>
+              )}
+            </div>
+          )
+        }
+      </div>
+    </header>
+
+    {
+      data.capa && (
+        <figure class:list={['pj-capa', data.capaRetrato && 'retrato']}>
+          <Image
+            src={data.capa}
+            alt={data.capaAlt ?? ''}
+            widths={data.capaRetrato ? [360, 720] : [720, 1120, 1600]}
+            sizes={data.capaRetrato ? '320px' : '(min-width: 1000px) 840px, 100vw'}
+            loading="lazy"
+          />
+        </figure>
+      )
+    }
+
+    <div class="pj-corpo">
+      <aside class="pj-ficha" aria-label="Ficha do projeto">
+        {
+          data.numeros.length > 0 && (
+            <fieldset class="grupo-xp">
+              <legend>Em números</legend>
+              <dl class="numeros">
+                {data.numeros.map((n) => (
+                  <div>
+                    <dt>{n.rotulo}</dt>
+                    <dd>{n.valor}</dd>
+                  </div>
+                ))}
+              </dl>
+            </fieldset>
+          )
+        }
+        <fieldset class="grupo-xp">
+          <legend>Tecnologias</legend>
+          <ul class="etiquetas">{data.stack.map((t) => <li>{t}</li>)}</ul>
+        </fieldset>
+        {
+          data.codigo === 'privado' && (
+            <p class="aviso-privado">
+              <Ic id="i-cadeado" />
+              <span>
+                O código deste projeto é privado. Se você quer avaliá-lo, libero o acesso ao repositório:{' '}
+                <a href="/#contato" data-cmd="abrir:contato">fale comigo</a>.
+              </span>
+            </p>
+          )
+        }
+      </aside>
+
+      <div class="pj-texto">
+        <Content />
+      </div>
+    </div>
+
+    {
+      data.galeria.length > 0 && (
+        <section class="pj-galeria" aria-label="Capturas de tela">
+          {data.galeria.map((g) => (
+            <figure>
+              <Image src={g.src} alt={g.alt} widths={[720, 1120, 1600]} sizes="(min-width: 1000px) 840px, 100vw" loading="lazy" />
+              {g.legenda && <figcaption>{g.legenda}</figcaption>}
+            </figure>
+          ))}
+        </section>
+      )
+    }
+
+    {
+      proximo.id !== projeto.id && (
+        <nav class="pj-proximo" aria-label="Próximo projeto">
+          <span>Próximo projeto</span>
+          <a class="xp-btn" href={`/projetos/${proximo.id}/`} data-cmd={`trocar:${proximo.id}`}>
+            {proximo.data.titulo} →
+          </a>
+        </nav>
+      )
+    }
+  </article>
+</div>

@@ -1,0 +1,134 @@
+---
+// Explorador: a pasta Projetos, com o painel de tarefas azul do XP e as vistas do Finder
+// (ícones, lista e galeria). Clique seleciona, duplo clique abre e a barra de espaço espia.
+import type { CollectionEntry } from 'astro:content';
+import Ic from './Ic.astro';
+import { site } from '../../site.config';
+
+interface Props {
+  projetos: CollectionEntry<'projetos'>[];
+}
+
+const { projetos } = Astro.props;
+const primeiro = projetos[0];
+---
+
+<div class="explorador-raiz" data-explorador data-vista="icones" style="display:contents">
+  <div class="barra-ferramentas">
+    <div class="seg" role="group" aria-label="Modo de exibição">
+      <button type="button" data-cmd="vista:icones" aria-pressed="true" aria-label="Ícones" title="Ícones">
+        <svg class="ic"><use href="#g-icones"></use></svg>
+      </button>
+      <button type="button" data-cmd="vista:lista" aria-pressed="false" aria-label="Lista" title="Lista">
+        <svg class="ic"><use href="#g-lista"></use></svg>
+      </button>
+      <button type="button" data-cmd="vista:galeria" aria-pressed="false" aria-label="Galeria" title="Galeria">
+        <svg class="ic"><use href="#g-galeria"></use></svg>
+      </button>
+    </div>
+    <button class="xp-btn" type="button" data-cmd="espiar" title="Espiar o projeto selecionado (barra de espaço)">Espiar</button>
+    <label class="campo-busca">
+      <span class="sr-only">Filtrar projetos</span>
+      <svg class="ic"><use href="#g-lupa"></use></svg>
+      <input type="search" placeholder="Filtrar projetos" data-filtro autocomplete="off" />
+    </label>
+  </div>
+
+  <div class="endereco">
+    <span>Endereço</span>
+    <span class="campo"><Ic id="i-pasta" /> C:\Usuários\Guilherme\Projetos</span>
+  </div>
+
+  <div class="explorador">
+    <aside class="tarefas" aria-label="Painel de tarefas">
+      <div class="tp-caixa">
+        <button class="tp-cab" type="button" aria-expanded="true">Tarefas do projeto <span class="chev">▲</span></button>
+        <div class="tp-corpo">
+          <button class="tp-link" type="button" data-cmd="abrir-sel"><Ic id="i-seta" /> Abrir este projeto</button>
+          <button class="tp-link" type="button" data-cmd="espiar"><Ic id="i-busca" /> Espiar (Quick Look)</button>
+          <a class="tp-link" data-tp="demo" href="#" target="_blank" rel="noopener" hidden><Ic id="i-globo" /> Abrir a demonstração</a>
+          <a class="tp-link" data-tp="codigo" href="#" target="_blank" rel="noopener" hidden><Ic id="i-github" /> Ver o código no GitHub</a>
+          <button class="tp-link" type="button" data-tp="pedir" data-cmd="abrir:contato"><Ic id="i-cadeado" /> Pedir acesso ao código</button>
+        </div>
+      </div>
+
+      <div class="tp-caixa">
+        <button class="tp-cab" type="button" aria-expanded="true">Outros locais <span class="chev">▲</span></button>
+        <div class="tp-corpo">
+          <button class="tp-link" type="button" data-cmd="abrir:sobre"><Ic id="i-usuario" /> Sobre mim</button>
+          <button class="tp-link" type="button" data-cmd="abrir:contato"><Ic id="i-correio" /> Contato</button>
+          <button class="tp-link" type="button" data-cmd="abrir:terminal"><Ic id="i-terminal" /> Terminal</button>
+          <a class="tp-link" href={site.github} target="_blank" rel="noopener me"><Ic id="i-github" /> GitHub</a>
+        </div>
+      </div>
+
+      <div class="tp-caixa">
+        <button class="tp-cab" type="button" aria-expanded="true">Detalhes <span class="chev">▲</span></button>
+        <div class="tp-corpo tp-detalhes" data-detalhes aria-live="polite">
+          {
+            primeiro && (
+              <>
+                <b>{primeiro.data.titulo}</b>
+                <p>{primeiro.data.tipo}</p>
+                <p>{primeiro.data.situacao}</p>
+              </>
+            )
+          }
+        </div>
+      </div>
+    </aside>
+
+    <div class="itens">
+      <div class="galeria-prev" data-galeria aria-live="polite">
+        <div class="quadro"><img alt="" data-galeria-img decoding="async" /></div>
+        <div class="legenda"><b data-galeria-titulo></b><p data-galeria-resumo></p></div>
+      </div>
+      <div class="pr-cab" aria-hidden="true">
+        <span>Nome</span><span>Tipo</span><span>Situação</span><span>Código</span>
+      </div>
+      <ul class="pr-lista" aria-label="Projetos">
+        {
+          projetos.map((p, i) => (
+            <li>
+              <a
+                class:list={['pr-item', i === 0 && 'sel']}
+                href={`/projetos/${p.id}/`}
+                data-slug={p.id}
+                data-texto={`${p.data.titulo} ${p.data.tipo} ${p.data.stack.join(' ')} ${p.data.resumo}`}
+                draggable="false"
+              >
+                <span class="cel-nome">
+                  <Ic id={`p-${p.id}`} />
+                  <span class="nome">{p.data.titulo}</span>
+                </span>
+                <span class="tipo">{p.data.tipo}</span>
+                <span class="col">{p.data.tipo}</span>
+                <span class="col col-extra">{p.data.situacao}</span>
+                <span class="col col-extra">{p.data.codigo === 'aberto' ? 'Aberto' : 'Privado'}</span>
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </div>
+
+  <div class="barra-status">
+    <span data-status>{projetos.length} objetos</span>
+    <span class="dica-teclado">Duplo clique abre · Espaço espia</span>
+  </div>
+</div>
+
+<style is:global>
+  /* No ícone, o nome fica embaixo do desenho; na lista, ao lado. */
+  .pr-item {
+    color: var(--texto);
+    text-decoration: none;
+  }
+  .pr-item .cel-nome {
+    display: contents;
+  }
+  [data-vista='lista'] .pr-item .cel-nome {
+    display: flex;
+  }
+</style>

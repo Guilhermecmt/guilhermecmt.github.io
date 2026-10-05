@@ -1,0 +1,54 @@
+---
+// "Sobre este Mac", só que sobre o Guilherme.
+import Ic from './Ic.astro';
+import { site } from '../../site.config';
+
+interface Props {
+  totalProjetos: number;
+}
+
+const { totalProjetos } = Astro.props;
+
+const ferramentas = [
+  'TypeScript', 'Python', 'Node.js', 'React', 'Next.js', 'NestJS', 'FastAPI', 'PostgreSQL',
+  'Prisma', 'Redis', 'SQLite', 'DuckDB', 'Docker', 'Electron', 'Capacitor', 'Ollama',
+];
+---
+
+<div class="rolagem sobre">
+  <Ic id="i-avatar" class="avatar" />
+  <h2>{site.nome}</h2>
+  <p class="papel-txt">{site.papel} · {site.local}</p>
+
+  <dl class="ficha-mac">
+    <dt>Faz</dt>
+    <dd>Software inteiro, do banco ao servidor</dd>
+    <dt>Linguagens</dt>
+    <dd>TypeScript e Python</dd>
+    <dt>Projetos</dt>
+    <dd>{totalProjetos} na pasta Projetos</dd>
+    <dt>Código</dt>
+    <dd>Privado na maioria; acesso sob pedido</dd>
+  </dl>
+
+  <div class="texto">
+    <p>
+      Gosto de levar um projeto do começo ao fim: modelar os dados, escrever a API, desenhar a
+      interface, empacotar o instalador e cuidar do servidor.
+    </p>
+    <p>
+      O que me interessa é software que dá para entender e manter. Por isso documento as decisões
+      junto do código, escrevo testes para o que não pode quebrar e prefiro ferramentas que o usuário
+      controla: dados locais, sem assinatura e sem depender de serviço de terceiros quando não precisa.
+    </p>
+    <ul class="etiquetas" aria-label="Ferramentas que uso">
+      {ferramentas.map((f) => <li>{f}</li>)}
+    </ul>
+  </div>
+
+  <div class="acoes">
+    <a class="xp-btn primario" href="/#projetos" data-cmd="abrir:projetos">Ver projetos</a>
+    <a class="xp-btn" href={`mailto:${site.email}`} data-cmd="abrir:contato">Falar comigo</a>
+  </div>
+  <p class="rodape-mac">MacêdOS XP · versão 2026</p>
+</div>
