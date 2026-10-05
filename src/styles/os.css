@@ -248,6 +248,49 @@ svg.ic {
   filter: drop-shadow(var(--barra-sombra));
 }
 
+/* Áreas de trabalho */
+.areas {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  margin-right: 4px;
+}
+
+.areas button {
+  position: relative;
+  width: 20px;
+  height: 16px;
+  padding: 0;
+  border: 1px solid color-mix(in srgb, currentColor 45%, transparent);
+  border-radius: 4px;
+  background: color-mix(in srgb, currentColor 8%, transparent);
+  color: inherit;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.areas button:hover {
+  background: color-mix(in srgb, currentColor 22%, transparent);
+}
+
+.areas button[aria-pressed='true'] {
+  border-color: currentColor;
+  background: color-mix(in srgb, currentColor 32%, transparent);
+}
+
+.areas button.ocupada::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: -4px;
+  width: 6px;
+  height: 2px;
+  margin-left: -3px;
+  border-radius: 1px;
+  background: currentColor;
+}
+
 .bandeja {
   display: flex;
   align-items: center;
@@ -871,7 +914,8 @@ svg.ic {
   display: flex;
 }
 
-.js .janela.minimizada {
+.js .janela.minimizada,
+.js .janela.outra-area {
   display: none;
 }
 
@@ -1485,7 +1529,121 @@ svg.ic {
   line-height: 1;
 }
 
+/* ---------- O pinguim ---------- */
+
+.pinguim {
+  position: fixed;
+  left: 0;
+  z-index: 799; /* logo abaixo do Dock, para subir de trás dele */
+  width: 34px;
+  height: 40px;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
+
+.pinguim svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  filter: drop-shadow(0 2px 2px rgb(0 0 0 / 0.3));
+}
+
+.pinguim .pg-corpo,
+.pinguim .pg-pe-e,
+.pinguim .pg-pe-d,
+.pinguim .pg-asa-d {
+  transform-box: view-box;
+}
+
+.pinguim.andando .pg-corpo {
+  transform-origin: 17px 38px;
+  animation: gingar 0.36s ease-in-out infinite alternate;
+}
+
+.pinguim.andando .pg-pe-e {
+  animation: passo 0.36s ease-in-out infinite alternate;
+}
+
+.pinguim.andando .pg-pe-d {
+  animation: passo 0.36s ease-in-out infinite alternate-reverse;
+}
+
+.pinguim.acenando .pg-asa-d {
+  transform-origin: 27px 19px;
+  animation: acenar 0.28s ease-in-out infinite alternate;
+}
+
+@keyframes gingar {
+  from {
+    transform: rotate(-6deg);
+  }
+  to {
+    transform: rotate(6deg);
+  }
+}
+
+@keyframes passo {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(-2.5px);
+  }
+}
+
+@keyframes acenar {
+  from {
+    transform: rotate(0);
+  }
+  to {
+    transform: rotate(-75deg);
+  }
+}
+
+.pinguim-fala {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  translate: -50% 0;
+  padding: 3px 9px;
+  border: 1px solid #000;
+  border-radius: 8px;
+  background: var(--dica);
+  color: var(--dica-texto);
+  font-size: 12px;
+  white-space: nowrap;
+  box-shadow: 2px 2px 4px rgb(0 0 0 / 0.25);
+}
+
 /* ---------- Inicialização e desligamento ---------- */
+
+.boot-log {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  padding: 18px 22px;
+  overflow: hidden;
+  color: #c8c8c8;
+  font: 13px/1.55 var(--fonte-mono);
+  white-space: pre-wrap;
+  text-align: left;
+}
+
+.log-ok {
+  color: #4ce04c;
+  font-weight: 400;
+}
+
+.boot:not(.com-log) .boot-log,
+.desligada:not(.com-log) .boot-log,
+.boot.com-log .boot-centro,
+.boot.com-log .boot-rodape,
+.desligada.com-log > :not(.boot-log) {
+  display: none;
+}
 
 .boot {
   position: fixed;
@@ -1716,6 +1874,7 @@ svg.ic {
   .barra-menu,
   .icones-mesa,
   .icone-mesa.lixeira-mesa,
+  .pinguim,
   .dock,
   .mc-veu {
     display: none;

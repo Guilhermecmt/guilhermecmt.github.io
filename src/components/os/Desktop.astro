@@ -61,29 +61,36 @@ const leiaMe = `LEIA-ME.txt
 ===========
 
 Bem-vindo ao MacêdOS XP, o portfólio de ${site.nome}.
-A pele é do Windows XP. O jeito de usar é do Mac.
 
 COMO NAVEGAR
   - A pasta Projetos tem os ${projetos.length} projetos. Duplo clique abre um deles.
-  - Selecione um projeto e aperte ESPAÇO para espiar (Quick Look).
+  - Selecione um projeto e aperte ESPAÇO para espiar sem abrir.
   - O Dock, lá embaixo, abre as janelas. Passe o mouse para ver a lupa.
-  - O botão verde "iniciar" fica onde o Mac põe a maçã.
-  - Arraste as janelas pela barra de título. Duplo clique nela dá zoom.
-  - O botão de minimizar manda a janela para o Dock, como no Mac.
+  - O botão verde "iniciar", no canto de cima, reúne tudo num lugar só.
+  - Arraste as janelas pela barra de título, ou segurando Alt em
+    qualquer ponto delas. Duplo clique na barra dá zoom.
+  - O botão de minimizar manda a janela para o Dock.
+  - Os números de 1 a 4, no alto, são áreas de trabalho: cada uma
+    guarda as suas janelas.
 
 ATALHOS
-  Ctrl+K ou /    Buscar qualquer coisa (Spotlight)
-  F3             Mission Control: todas as janelas lado a lado
-  Espaço         Espiar o projeto selecionado
-  Esc            Fechar a busca, os menus e o Quick Look
+  Ctrl+K ou /       Buscar qualquer coisa
+  F3                Atividades: todas as janelas lado a lado
+  Ctrl+Alt+← →      Trocar de área de trabalho
+  Espaço            Espiar o projeto selecionado
+  Esc               Fechar a busca, os menus e a espiada
+
+TERMINAL
+  Para quem prefere digitar. Comece com "ajuda" ou "neofetch".
+  Dá para andar pelas pastas: cd projetos, ls, cat README.md...
 
 APARÊNCIA
-  Na central de controle (o ícone de chaves, no alto à direita) você escolhe
-  o esquema de cores do XP: Azul, Oliva ou Prateado. O Noir é o modo escuro.
-  O céu fica de dia; em "Dinâmico", acompanha a hora (tarde e noite).
+  Na central de controle (o ícone de chaves, no alto à direita) você
+  escolhe o esquema de cores (Azul, Oliva, Prata ou Noir, o escuro) e o
+  céu do papel de parede. Em "Dinâmico", ele acompanha a hora do dia.
 
-No celular, o sistema vira uma tela inicial de iPhone.
 Cada projeto tem endereço próprio: dá para mandar o link de um deles.
+E fique de olho no pinguim.
 
 Feito à mão com Astro. Sem rastreadores.`;
 ---
@@ -98,7 +105,7 @@ Feito à mão com Astro. Sem rastreadores.`;
   <script is:inline type="application/json" id="os-dados" set:html={JSON.stringify(dados)} />
   <Papel />
 
-  <!-- Barra de menus: o lugar e o comportamento são do Mac; a pele, do XP. -->
+  <!-- Barra de menus -->
   <header class="barra-menu">
     <button class="iniciar-btn" type="button" data-pop aria-controls="menu-iniciar" aria-expanded="false">
       <svg class="logo" aria-hidden="true"><use href="#i-logo"></use></svg>
@@ -112,7 +119,16 @@ Feito à mão com Astro. Sem rastreadores.`;
       <button class="menu-rotulo" type="button" data-pop aria-controls="menu-ajuda" aria-expanded="false">Ajuda</button>
     </nav>
     <div class="direita">
-      <button class="icone-barra" type="button" data-cmd="mc" aria-label="Mission Control (F3)" title="Mission Control (F3)">
+      <div class="areas" role="group" aria-label="Áreas de trabalho" data-areas>
+        {
+          [1, 2, 3, 4].map((n) => (
+            <button type="button" data-cmd={`area:${n}`} aria-pressed={n === 1 ? 'true' : 'false'} aria-label={`Área de trabalho ${n}`} title={`Área de trabalho ${n} (Ctrl+Alt+← →)`}>
+              {n}
+            </button>
+          ))
+        }
+      </div>
+      <button class="icone-barra" type="button" data-cmd="mc" aria-label="Atividades (F3)" title="Atividades (F3)">
         <svg class="ic" aria-hidden="true"><use href="#g-mc"></use></svg>
       </button>
       <button class="icone-barra" type="button" data-cmd="busca" aria-label="Buscar (Ctrl+K)" title="Buscar (Ctrl+K)">
@@ -148,11 +164,19 @@ Feito à mão com Astro. Sem rastreadores.`;
     <button type="button" role="menuitemradio" data-cmd="vista:galeria" aria-checked="false">Como galeria</button>
     <hr />
     <button type="button" role="menuitem" data-cmd="espiar">Espiar projeto <kbd>Espaço</kbd></button>
-    <button type="button" role="menuitem" data-cmd="mc">Mission Control <kbd>F3</kbd></button>
+    <button type="button" role="menuitem" data-cmd="mc">Atividades <kbd>F3</kbd></button>
   </div>
   <div class="menu-lista" id="menu-janela" role="menu" hidden>
     <button type="button" role="menuitem" data-cmd="minimizar" data-requer-janela>Minimizar</button>
     <button type="button" role="menuitem" data-cmd="zoom" data-requer-janela>Zoom</button>
+    <hr />
+    {
+      [1, 2, 3, 4].map((n) => (
+        <button type="button" role="menuitem" data-cmd={`mover-area:${n}`} data-requer-janela>
+          Mover para a área {n}
+        </button>
+      ))
+    }
     <hr />
     <div data-lista-janelas></div>
   </div>
@@ -195,7 +219,7 @@ Feito à mão com Astro. Sem rastreadores.`;
         <hr />
         <button class="mi-item" type="button" role="menuitem" data-cmd="central"><Ic id="i-controle" /> Central de controle</button>
         <button class="mi-item" type="button" role="menuitem" data-cmd="busca"><Ic id="i-busca" /> Pesquisar</button>
-        <button class="mi-item" type="button" role="menuitem" data-cmd="mc"><Ic id="i-mc" /> Mission Control</button>
+        <button class="mi-item" type="button" role="menuitem" data-cmd="mc"><Ic id="i-mc" /> Atividades</button>
       </div>
     </div>
     <div class="mi-rodape">
@@ -292,14 +316,15 @@ Feito à mão com Astro. Sem rastreadores.`;
       ))
     }
 
-    <Janela id="terminal" titulo="Terminal" icone="i-terminal" app="Terminal" largura={680} altura={420} soJs>
+    <Janela id="terminal" titulo="guilherme@macedos: ~" icone="i-terminal" app="Terminal" largura={720} altura={460} soJs>
       <div class="terminal" data-terminal>
-        <pre data-saida>MacêdOS XP [versão 2026]
-(C) {site.nome}. Digite <span class="destaque">ajuda</span> para ver os comandos.
+        <pre data-saida>Bem-vindo ao MacêdOS XP 2026 (GNU/Linux 6.11.0-macedos x86_64)
+
+Digite <span class="t-amarelo">ajuda</span> para ver os comandos, ou experimente <span class="t-amarelo">neofetch</span>.
 
 </pre>
         <form class="linha" data-entrada>
-          <span>C:\Usuários\Guilherme&gt;&nbsp;</span>
+          <span class="prompt"><b class="t-verde">guilherme@macedos</b>:<b class="t-azul" data-cwd>~</b>$&nbsp;</span>
           <input type="text" aria-label="Comando" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="send" />
         </form>
       </div>
@@ -331,7 +356,7 @@ Feito à mão com Astro. Sem rastreadores.`;
             erro404 && (
               <>
                 <p>
-                  O MacêdOS XP não encontrou <code data-caminho>esta página</code>.
+                  <code>bash: cd: <span data-caminho>esta página</span>: Arquivo ou diretório inexistente</code>
                 </p>
                 <p>O endereço pode ter mudado. Os projetos estão todos na pasta Projetos.</p>
               </>
@@ -372,7 +397,7 @@ Feito à mão com Astro. Sem rastreadores.`;
     <div class="dock-bandeja">
       <button class="dock-item" type="button" data-cmd="mc">
         <Ic id="i-mc" />
-        <span class="dock-rotulo">Mission Control</span>
+        <span class="dock-rotulo">Atividades</span>
       </button>
       <button class="dock-item" type="button" data-cmd="abrir:lixeira" data-alvo="lixeira">
         <Ic id="i-lixeira-cheia" class="ic-lixeira" />
@@ -429,7 +454,7 @@ Feito à mão com Astro. Sem rastreadores.`;
   </div>
   <button class="barra-home" type="button" data-barra-home aria-label="Voltar à tela inicial"></button>
 
-  <!-- Spotlight -->
+  <!-- Busca -->
   <div class="busca" data-busca hidden>
     <div class="busca-painel" role="dialog" aria-label="Buscar">
       <div class="busca-campo">
@@ -445,7 +470,7 @@ Feito à mão com Astro. Sem rastreadores.`;
     </div>
   </div>
 
-  <!-- Quick Look -->
+  <!-- Espiar -->
   <div class="espiar" data-espiar hidden>
     <div class="espiar-painel" role="dialog" aria-labelledby="espiar-titulo">
       <div class="espiar-barra">
@@ -467,18 +492,41 @@ Feito à mão com Astro. Sem rastreadores.`;
     </div>
   </div>
 
+  <!-- O pinguim que passeia em cima do Dock -->
+  <button class="pinguim" type="button" data-pinguim hidden aria-label="Pinguim: abre o terminal" title="Oi! Clique em mim">
+    <span class="pinguim-fala" data-pinguim-fala hidden></span>
+    <svg viewBox="0 0 34 40" aria-hidden="true">
+      <g class="pg-corpo">
+        <path class="pg-asa-e" d="M6.5 18c-3.5 4-4 9-2.5 12 2-1.5 3.5-5 3.5-9Z" fill="#16161d"></path>
+        <path class="pg-asa-d" d="M27.5 18c3.5 4 4 9 2.5 12-2-1.5-3.5-5-3.5-9Z" fill="#16161d"></path>
+        <ellipse cx="17" cy="22" rx="11.5" ry="14.5" fill="#16161d"></ellipse>
+        <ellipse cx="17" cy="25.5" rx="7.6" ry="10" fill="#fbfbf6"></ellipse>
+        <ellipse cx="13.6" cy="12.5" rx="3.3" ry="4" fill="#fbfbf6"></ellipse>
+        <ellipse cx="20.4" cy="12.5" rx="3.3" ry="4" fill="#fbfbf6"></ellipse>
+        <circle cx="14.3" cy="13.2" r="1.5" fill="#111"></circle>
+        <circle cx="19.7" cy="13.2" r="1.5" fill="#111"></circle>
+        <circle cx="14.7" cy="12.6" r=".5" fill="#fff"></circle>
+        <circle cx="20.1" cy="12.6" r=".5" fill="#fff"></circle>
+        <path d="M13 16.6c2.2-1.4 5.8-1.4 8 0-1.2 2.6-2.6 3.6-4 3.6s-2.8-1-4-3.6Z" fill="#f5a316" stroke="#c97a06" stroke-width=".6"></path>
+      </g>
+      <ellipse class="pg-pe-e" cx="12" cy="37.4" rx="4.6" ry="2.1" fill="#f5a316" stroke="#c97a06" stroke-width=".6"></ellipse>
+      <ellipse class="pg-pe-d" cx="22" cy="37.4" rx="4.6" ry="2.1" fill="#f5a316" stroke="#c97a06" stroke-width=".6"></ellipse>
+    </svg>
+  </button>
+
   <!-- Balão de notificação -->
   <div class="balao" data-balao role="status" hidden>
     <button class="balao-fechar" type="button" aria-label="Fechar aviso">✕</button>
     <strong><Ic id="i-info" /> Bem-vindo ao MacêdOS XP</strong>
     <p data-balao-texto>
-      A pele é do XP, o jeito de usar é do Mac. Aperte <kbd>Ctrl</kbd> <kbd>K</kbd> para buscar ou
-      clique aqui para ler o LEIA-ME.
+      Aperte <kbd>Ctrl</kbd> <kbd>K</kbd> para buscar qualquer coisa, ou clique aqui para ler o
+      LEIA-ME com o passo a passo.
     </p>
   </div>
 
   <!-- Inicialização -->
   <div class="boot" data-boot hidden>
+    <pre class="boot-log" data-boot-log aria-hidden="true"></pre>
     <div class="boot-centro">
       <div class="marca-os">
         <svg class="logo" aria-hidden="true"><use href="#i-logo"></use></svg>
@@ -486,7 +534,7 @@ Feito à mão com Astro. Sem rastreadores.`;
       </div>
       <div class="progresso-xp" aria-hidden="true"><i></i><i></i><i></i></div>
     </div>
-    <div class="boot-rodape"><span>Copyright © {site.nome}</span><i>Pele de XP, alma de Mac</i></div>
+    <div class="boot-rodape"><span>Copyright © {site.nome}</span><i>versão 2026</i></div>
   </div>
 
   <!-- Desligar -->
@@ -502,7 +550,8 @@ Feito à mão com Astro. Sem rastreadores.`;
     </div>
   </div>
   <div class="desligada" data-desligada hidden>
-    <p>Agora é seguro fechar esta aba.</p>
+    <pre class="boot-log" data-desligar-log aria-hidden="true"></pre>
+    <p data-desligada-msg>Agora é seguro fechar esta aba.</p>
     <button type="button" data-cmd="ligar" aria-label="Ligar de novo"><Ic id="i-desligar" /></button>
   </div>
 </div>

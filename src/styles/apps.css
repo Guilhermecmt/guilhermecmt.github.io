@@ -984,11 +984,11 @@
   min-height: 0;
   overflow: auto;
   padding: 8px 10px;
-  background: #0c0c0c;
-  color: #c7c7c7;
-  font-family: var(--fonte-mono);
-  font-size: 13px;
-  line-height: 1.45;
+  background: #300a24;
+  color: #eeeeec;
+  font-family: 'Ubuntu Mono', 'DejaVu Sans Mono', Consolas, var(--fonte-mono);
+  font-size: 13.5px;
+  line-height: 1.4;
   cursor: text;
 }
 
@@ -1015,16 +1015,56 @@
   caret-color: #fff;
 }
 
-.terminal .destaque {
-  color: #6cf;
+.terminal b {
+  font-weight: 700;
 }
 
+.terminal .t-verde,
 .terminal .ok {
-  color: #7ee787;
+  color: #8ae234;
+}
+
+.terminal .t-azul,
+.terminal .destaque {
+  color: #729fcf;
+}
+
+.terminal .t-amarelo {
+  color: #fce94f;
 }
 
 .terminal .erro {
-  color: #ff7b72;
+  color: #ef6b6b;
+}
+
+.terminal .t-inverso {
+  background: #eeeeec;
+  color: #300a24;
+}
+
+.terminal .nf-1 {
+  color: #ff6fb5;
+}
+
+.terminal .nf-2 {
+  color: #5fd7ff;
+}
+
+.terminal .nf-3 {
+  color: #9d7dff;
+}
+
+.terminal .nf-4 {
+  color: #ffc046;
+}
+
+.terminal .nf {
+  display: block;
+  line-height: 1.15;
+}
+
+.terminal .prompt {
+  white-space: pre;
 }
 
 /* ---------- Bloco de notas ---------- */

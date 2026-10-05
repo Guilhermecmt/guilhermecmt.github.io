@@ -1,6 +1,7 @@
 // MacêdOS XP: gerenciador de janelas e o resto do comportamento da área de trabalho.
-// A pele é do Windows XP; o jeito de usar é do Mac (Dock com lupa, Spotlight, Quick Look,
-// Mission Control, minimizar para o Dock). No celular, vira uma tela inicial de iPhone.
+// Mistura três sistemas: a pele do Windows XP; o jeito de usar do Mac (Dock com lupa, busca,
+// espiar, visão de todas as janelas, minimizar para o Dock); e o Linux (terminal bash, áreas de
+// trabalho, Alt+arrastar, mensagens do systemd e o pinguim). No celular, vira uma tela de iPhone.
 
 interface Projeto {
   slug: string;
@@ -33,6 +34,7 @@ interface Janela {
   aberta: boolean;
   min: boolean;
   max: boolean;
+  area: number;
   geo: Geo | null;
   antes: Geo | null;
 }
@@ -100,18 +102,19 @@ document.addEventListener('pointerdown', (e) => (ultimoPonteiro = e.pointerType)
 const janelas = new Map<string, Janela>();
 for (const el of $$('.janela')) {
   const id = el.dataset.janela!;
-  janelas.set(id, { id, el, aberta: false, min: false, max: false, geo: null, antes: null });
+  janelas.set(id, { id, el, aberta: false, min: false, max: false, area: 1, geo: null, antes: null });
 }
 
 let zTopo = 20;
 let ativa: string | null = null;
+let areaAtual = 1;
 
 function area(): Geo {
   const y = MENU_H + 6;
   return { x: 6, y, w: innerWidth - 12, h: innerHeight - y - DOCK_H };
 }
 
-const visiveis = () => [...janelas.values()].filter((j) => j.aberta && !j.min);
+const visiveis = () => [...janelas.values()].filter((j) => j.aberta && !j.min && j.area === areaAtual);
 const porZ = (lista: Janela[]) => lista.sort((a, b) => Number(b.el.style.zIndex) - Number(a.el.style.zIndex));
 
 function enquadrar(g: Geo): Geo {
@@ -232,6 +235,7 @@ function abrir(id: string, origem?: Element | null, op: { semUrl?: boolean; geo?
   if (!j) return;
   fecharPopovers();
   if (mcAtivo) sairMc();
+  if (j.aberta && j.area !== areaAtual) irParaArea(j.area);
   if (j.aberta && j.min) {
     restaurar(j);
     return;
@@ -242,6 +246,8 @@ function abrir(id: string, origem?: Element | null, op: { semUrl?: boolean; geo?
   }
 
   if (movel.matches) esconderBalao();
+  j.area = areaAtual;
+  j.el.classList.remove('outra-area');
   j.aberta = true;
   j.min = false;
   j.geo = j.max ? areaMax() : enquadrar(op.geo ?? j.geo ?? geoPadrao(j));
@@ -282,7 +288,7 @@ function fechar(id?: string | null, op: { semUrl?: boolean; semAnim?: boolean } 
   j.aberta = false;
   const fim = () => {
     if (j.aberta) return;
-    j.el.classList.remove('aberta', 'ativa', 'minimizada');
+    j.el.classList.remove('aberta', 'ativa', 'minimizada', 'outra-area');
     j.min = false;
   };
   if (op.semAnim || semMovimento() || j.min) fim();
@@ -349,6 +355,44 @@ function zoom(id?: string | null) {
   transicionar(j);
 }
 
+/* Áreas de trabalho (quatro, como num painel de Linux) */
+
+function irParaArea(n: number) {
+  if (n === areaAtual || n < 1 || n > 4 || movel.matches) return;
+  const direcao = n > areaAtual ? 1 : -1;
+  if (mcAtivo) sairMc();
+  areaAtual = n;
+  for (const j of janelas.values()) j.el.classList.toggle('outra-area', j.aberta && j.area !== n);
+  for (const b of $$('[data-areas] button')) b.setAttribute('aria-pressed', String(b.dataset.cmd === `area:${n}`));
+  ativa = null;
+  focarTopo();
+  atualizarDock();
+  if (!semMovimento())
+    $('.janelas')!.animate([{ transform: `translateX(${direcao * 70}px)`, opacity: 0 }, { transform: 'none', opacity: 1 }], {
+      duration: 280,
+      easing: 'cubic-bezier(.2,.9,.3,1)',
+    });
+}
+
+function moverParaArea(id: string | null, n: number) {
+  const j = id ? janelas.get(id) : null;
+  if (!j || !j.aberta || n < 1 || n > 4) return;
+  j.area = n;
+  j.el.classList.toggle('outra-area', n !== areaAtual);
+  if (ativa === j.id && n !== areaAtual) {
+    ativa = null;
+    focarTopo();
+  }
+  atualizarDock();
+}
+
+function atualizarAreas() {
+  for (const b of $$('[data-areas] button')) {
+    const n = Number(b.dataset.cmd!.split(':')[1]);
+    b.classList.toggle('ocupada', [...janelas.values()].some((j) => j.aberta && j.area === n));
+  }
+}
+
 /* Arrastar e redimensionar */
 
 function arrastar(ev: PointerEvent, j: Janela, alca: HTMLElement, modo: 'mover' | 'redim') {
@@ -401,6 +445,10 @@ os.addEventListener('pointerdown', (ev) => {
   const j = janelas.get(jEl.dataset.janela!)!;
   if (ativa !== j.id) focar(j.id);
   if (movel.matches || ev.button !== 0) return;
+  if (ev.altKey && !alvo.closest('input, textarea')) {
+    arrastar(ev, j, j.el, 'mover');
+    return;
+  }
   const barra = alvo.closest<HTMLElement>('.janela-barra');
   const alca = alvo.closest<HTMLElement>('.janela-alca');
   if (barra && !alvo.closest('button')) arrastar(ev, j, barra, 'mover');
@@ -587,6 +635,7 @@ function atualizarDock() {
     if (item.closest('[data-dock-projetos]')) item.hidden = !rodando;
   }
   $('[data-dock-sep]')!.hidden = !$('[data-dock-projetos] .dock-item:not([hidden])');
+  atualizarAreas();
   os.classList.toggle('tem-janela', visiveis().length > 0);
 }
 
@@ -810,12 +859,13 @@ const indice: Resultado[] = [
     extra: `${p.stack.join(' ')} ${p.resumo} ${p.slug}`,
     projeto: p,
   })),
-  { grupo: 'Ações', titulo: 'Mission Control', sub: 'F3', icone: 'i-mc', cmd: 'mc', desc: 'Todas as janelas lado a lado.', extra: 'janelas expose' },
+  { grupo: 'Ações', titulo: 'Atividades', sub: 'F3', icone: 'i-mc', cmd: 'mc', desc: 'Todas as janelas lado a lado.', extra: 'janelas visao geral mission control expose' },
+  { grupo: 'Ações', titulo: 'Neofetch', sub: 'Terminal', icone: 'i-terminal', cmd: 'neofetch', desc: 'As informações do sistema, direto no terminal.', extra: 'linux sistema info' },
   { grupo: 'Ações', titulo: 'Central de controle', sub: 'Aparência', icone: 'i-controle', cmd: 'central', desc: 'Esquema de cores, céu e movimento.', extra: 'tema cores ajustes preferencias' },
   { grupo: 'Ações', titulo: 'Modo escuro (Noir)', sub: 'Esquema', icone: 'i-controle', cmd: 'esquema:noir', desc: 'O esquema Noir, escuro.', extra: 'tema dark escuro noir' },
-  { grupo: 'Ações', titulo: 'Esquema Azul', sub: 'Esquema', icone: 'i-controle', cmd: 'esquema:azul', desc: 'O azul Luna clássico.', extra: 'tema claro luna' },
-  { grupo: 'Ações', titulo: 'Esquema Oliva', sub: 'Esquema', icone: 'i-controle', cmd: 'esquema:oliva', desc: 'O verde-oliva do XP.', extra: 'tema verde' },
-  { grupo: 'Ações', titulo: 'Esquema Prateado', sub: 'Esquema', icone: 'i-controle', cmd: 'esquema:prata', desc: 'O prateado do XP.', extra: 'tema prata cinza silver' },
+  { grupo: 'Ações', titulo: 'Esquema Azul', sub: 'Esquema', icone: 'i-controle', cmd: 'esquema:azul', desc: 'O esquema padrão, azul.', extra: 'tema claro' },
+  { grupo: 'Ações', titulo: 'Esquema Oliva', sub: 'Esquema', icone: 'i-controle', cmd: 'esquema:oliva', desc: 'Verde-oliva.', extra: 'tema verde' },
+  { grupo: 'Ações', titulo: 'Esquema Prateado', sub: 'Esquema', icone: 'i-controle', cmd: 'esquema:prata', desc: 'Prateado, mais neutro.', extra: 'tema prata cinza silver' },
   { grupo: 'Ações', titulo: 'Copiar e-mail', sub: dados.email, icone: 'i-copiar', cmd: 'copiar-email', desc: dados.email, extra: 'email contato' },
   { grupo: 'Ações', titulo: 'GitHub', sub: 'Abre numa aba nova', icone: 'i-github', cmd: `link:${dados.github}`, desc: dados.github, extra: 'codigo repositorio' },
   { grupo: 'Ações', titulo: 'LinkedIn', sub: 'Abre numa aba nova', icone: 'i-linkedin', cmd: `link:${dados.linkedin}`, desc: dados.linkedin, extra: 'perfil curriculo' },
@@ -1053,6 +1103,40 @@ const bootEl = $('[data-boot]')!;
 const desligarEl = $('[data-desligar]')!;
 const desligadaEl = $('[data-desligada]')!;
 
+const OK = '[  <b class="log-ok">OK</b>  ]';
+const espera = (ms: number) => new Promise<void>((pronto) => setTimeout(pronto, ms));
+const nomesEsquema: Record<string, string> = { azul: 'Azul', oliva: 'Oliva', prata: 'Prata', noir: 'Noir' };
+
+function digitarLog(el: HTMLElement, linhas: string[], passo: number) {
+  el.innerHTML = '';
+  return new Promise<void>((pronto) => {
+    let i = 0;
+    const t = window.setInterval(() => {
+      if (i >= linhas.length) {
+        clearInterval(t);
+        pronto();
+        return;
+      }
+      el.insertAdjacentHTML('beforeend', `${linhas[i++]}\n`);
+    }, passo);
+  });
+}
+
+function linhasBoot() {
+  return [
+    '[    0.000000] Linux version 6.11.0-macedos (guilherme@macedos) #2026 SMP PREEMPT_DYNAMIC',
+    '[    0.418273] Carregando o MacêdOS XP...',
+    `${OK} Iniciado o Registro do Sistema.`,
+    `${OK} Montado /home/guilherme.`,
+    `${OK} Montado /home/guilherme/projetos (${dados.projetos.length} itens).`,
+    `${OK} Iniciado o Gerenciador de Janelas.`,
+    `${OK} Carregado o esquema de cores ${nomesEsquema[raiz.dataset.esquema ?? 'azul'] ?? 'Azul'}.`,
+    `${OK} Iniciado o Dock.`,
+    `${OK} Iniciado o pinguim.`,
+    `${OK} Alcançado o alvo Área de Trabalho.`,
+  ];
+}
+
 function layoutInicial() {
   let ids: string[] = JSON.parse((movel.matches ? os.dataset.inicialMovel : os.dataset.inicial) || '[]');
   const a = area();
@@ -1072,13 +1156,20 @@ function layoutInicial() {
   sincronizarUrl(false);
 }
 
+let pinguimAgendado = false;
+
 function iniciarSessao(comBalao: boolean) {
   layoutInicial();
   if (comBalao) setTimeout(() => mostrarBalao(), 900);
+  if (!pinguimAgendado) {
+    pinguimAgendado = true;
+    agendarPinguim(comBalao ? 14_000 : 8_000);
+  }
 }
 
 function ligar(forcar = false) {
   desligadaEl.hidden = true;
+  desligadaEl.classList.remove('com-log');
   const jaLigou = sessao.ler('os.ligado') === '1';
   // A tela de inicialização aparece na primeira visita à página inicial. Quem chega por um link de
   // projeto vai direto ao conteúdo.
@@ -1096,6 +1187,7 @@ function ligar(forcar = false) {
     if (feito) return;
     feito = true;
     sessao.gravar('os.ligado', '1');
+    bootEl.classList.remove('com-log');
     bootEl.classList.add('saindo');
     iniciarSessao(!jaLigou);
     setTimeout(() => {
@@ -1103,7 +1195,14 @@ function ligar(forcar = false) {
       bootEl.classList.remove('saindo');
     }, 500);
   };
-  setTimeout(terminar, semMovimento() ? 600 : 1700);
+  // Primeiro as mensagens do systemd, depois a marca com a barrinha de blocos.
+  const comLog = !semMovimento();
+  bootEl.classList.toggle('com-log', comLog);
+  const log = comLog ? digitarLog($('[data-boot-log]')!, linhasBoot(), 70).then(() => espera(250)) : Promise.resolve();
+  log.then(() => {
+    bootEl.classList.remove('com-log');
+    setTimeout(terminar, semMovimento() ? 600 : 1300);
+  });
   bootEl.addEventListener('click', terminar, { once: true });
 }
 
@@ -1120,11 +1219,30 @@ function esconderDesligar() {
   desligarEl.hidden = true;
 }
 
-function desligarAgora() {
+async function desligarAgora() {
+  const abertas = [...janelas.values()].filter((j) => j.aberta).length;
   esconderDesligar();
   fecharTodas(true);
+  passeio?.cancel();
   sessao.gravar('os.ligado', null);
   desligadaEl.hidden = false;
+  if (semMovimento()) return;
+  desligadaEl.classList.add('com-log');
+  await digitarLog(
+    $('[data-desligar-log]')!,
+    [
+      `${OK} Parado o pinguim.`,
+      `${OK} Parado o Dock.`,
+      `${OK} ${abertas === 1 ? 'Fechada 1 janela' : `Fechadas ${abertas} janelas`}.`,
+      `${OK} Desmontado /home/guilherme/projetos.`,
+      `${OK} Parado o Gerenciador de Janelas.`,
+      `${OK} Alcançado o alvo Desligar.`,
+      '[   12.004211] reboot: Desligando',
+    ],
+    90,
+  );
+  await espera(450);
+  desligadaEl.classList.remove('com-log');
 }
 
 /* ============================================================
@@ -1140,21 +1258,126 @@ barraHome.addEventListener('pointerup', (e) => {
 barraHome.addEventListener('click', (e) => e.preventDefault());
 
 /* ============================================================
-   Terminal
+   Terminal: um bash com pastas de mentira (~/projetos, LEIA-ME.txt...)
    ============================================================ */
 
 const terminal = $('[data-terminal]')!;
 const saida = $('[data-saida]', terminal)!;
 const formTerminal = $<HTMLFormElement>('[data-entrada]', terminal)!;
 const entrada = $<HTMLInputElement>('input', formTerminal)!;
+const cwdEl = $('[data-cwd]', terminal)!;
 const historico: string[] = [];
 let posHistorico = -1;
+let cwd: string[] = [];
+const inicioSessao = Date.now();
 
 function escrever(texto: string, classe?: string) {
   const s = document.createElement('span');
   if (classe) s.className = classe;
   s.textContent = texto;
   saida.append(s);
+}
+
+function escreverHtml(html: string) {
+  saida.insertAdjacentHTML('beforeend', html);
+}
+
+const caminhoTexto = (c: string[]) => (c.length ? `~/${c.join('/')}` : '~');
+const promptHtml = () =>
+  `<b class="t-verde">guilherme@macedos</b>:<b class="t-azul">${esc(caminhoTexto(cwd))}</b>$ `;
+const minutosLigado = () => Math.max(1, Math.round((Date.now() - inicioSessao) / 60_000));
+const lixeiraCheia = () => !!$('[data-lixeira] .pr-item');
+
+const ARQUIVOS_HOME = ['LEIA-ME.txt', 'sobre.txt', 'contato.txt'];
+
+// Caminho como lista de pastas a partir de /home/guilherme. Devolve null se sair de casa.
+function resolver(arg: string): string[] | null {
+  if (!arg) return [...cwd];
+  if (arg === '~') return [];
+  let base: string[];
+  let partes: string[];
+  if (arg.startsWith('~/')) {
+    base = [];
+    partes = arg.slice(2).split('/');
+  } else if (arg.startsWith('/')) {
+    const abs = arg.split('/').filter(Boolean);
+    if (abs[0] !== 'home' || abs[1] !== 'guilherme') return null;
+    base = [];
+    partes = abs.slice(2);
+  } else {
+    base = [...cwd];
+    partes = arg.split('/');
+  }
+  for (const p of partes) {
+    if (!p || p === '.') continue;
+    if (p === '..') base.pop();
+    else base.push(p);
+  }
+  return base;
+}
+
+function tipo(c: string[] | null): 'dir' | 'arq' | null {
+  if (!c) return null;
+  if (c.length === 0) return 'dir';
+  if (c.length === 1) return c[0] === 'projetos' || c[0] === '.lixeira' ? 'dir' : ARQUIVOS_HOME.includes(c[0]) ? 'arq' : null;
+  if (c[0] === 'projetos' && porSlug.has(c[1])) return c.length === 2 ? 'dir' : c.length === 3 && c[2] === 'README.md' ? 'arq' : null;
+  if (c[0] === '.lixeira' && c.length === 2 && c[1] === 'portfolio-v1.html' && lixeiraCheia()) return 'arq';
+  return null;
+}
+
+function listar(c: string[], ocultos: boolean): { nome: string; dir: boolean }[] {
+  if (c.length === 0)
+    return [
+      ...(ocultos ? [{ nome: '.lixeira', dir: true }] : []),
+      { nome: 'projetos', dir: true },
+      ...ARQUIVOS_HOME.map((nome) => ({ nome, dir: false })),
+    ];
+  if (c[0] === 'projetos' && c.length === 1) return dados.projetos.map((p) => ({ nome: p.slug, dir: true }));
+  if (c[0] === 'projetos' && c.length === 2) return [{ nome: 'README.md', dir: false }];
+  if (c[0] === '.lixeira') return lixeiraCheia() ? [{ nome: 'portfolio-v1.html', dir: false }] : [];
+  return [];
+}
+
+function lerArquivo(c: string[]) {
+  const nome = c.join('/');
+  if (nome === 'LEIA-ME.txt') return `${$('.bloco')?.textContent ?? ''}\n`;
+  if (nome === 'sobre.txt') return `${dados.nome}\n${dados.papel}.\nFaz software inteiro, do banco ao servidor, em TypeScript e Python.\n`;
+  if (nome === 'contato.txt') return `E-mail:   ${dados.email}\nLinkedIn: ${dados.linkedin}\nGitHub:   ${dados.github}\n`;
+  if (c[0] === 'projetos') {
+    const p = porSlug.get(c[1])!;
+    return (
+      `# ${p.titulo}\n\n${p.resumo}\n\n` +
+      `Tipo:        ${p.tipo}\nSituação:    ${p.situacao}\n` +
+      `Código:      ${p.codigo === 'aberto' ? 'aberto' : 'privado (acesso sob pedido)'}\n` +
+      `Tecnologias: ${p.stack.join(', ')}\n\nPara ver tudo: abrir ${p.slug}\n`
+    );
+  }
+  return '<!-- parecia um blog -->\n';
+}
+
+function alvoDeCaminho(c: string[]): { nome: string; cmd: string } | null {
+  if (!c.length) return null;
+  if (c[0] === 'projetos') {
+    if (c.length === 1) return { nome: 'Projetos', cmd: 'abrir:projetos' };
+    const p = porSlug.get(c[1]);
+    return p ? { nome: p.titulo, cmd: `projeto:${p.slug}` } : null;
+  }
+  const mapa: Record<string, { nome: string; cmd: string }> = {
+    'LEIA-ME.txt': { nome: 'LEIA-ME.txt', cmd: 'abrir:leiame' },
+    'sobre.txt': { nome: 'Sobre mim', cmd: 'abrir:sobre' },
+    'contato.txt': { nome: 'Contato', cmd: 'abrir:contato' },
+    '.lixeira': { nome: 'Lixeira', cmd: 'abrir:lixeira' },
+  };
+  return mapa[c[0]] ?? null;
+}
+
+function definirCwd(c: string[]) {
+  cwd = c;
+  cwdEl.textContent = caminhoTexto(c);
+  const titulo = `guilherme@macedos: ${caminhoTexto(c)}`;
+  const j = janelas.get('terminal')!;
+  j.el.dataset.titulo = titulo;
+  $('.janela-titulo', j.el)!.textContent = titulo;
 }
 
 const appsTerminal: Record<string, string> = {
@@ -1170,12 +1393,92 @@ const appsTerminal: Record<string, string> = {
 };
 
 function acharAlvo(arg: string): { nome: string; cmd: string } | null {
-  const q = normalizar(arg.trim());
+  const q = normalizar(arg.trim()).replace(/\/$/, '');
   if (!q) return null;
+  const c = resolver(arg.trim());
+  if (tipo(c)) return alvoDeCaminho(c!);
   if (appsTerminal[q]) return { nome: q, cmd: `abrir:${appsTerminal[q]}` };
   const p = dados.projetos.find((p) => p.slug.startsWith(q.replace(/\s+/g, '-')) || normalizar(p.titulo).includes(q));
   return p ? { nome: p.titulo, cmd: `projeto:${p.slug}` } : null;
 }
+
+function neofetch() {
+  const cor = (c: string, t: string) => `<span class="${c}">${t}</span>`;
+  const bloco = '███████';
+  const arte = [
+    `${cor('nf-1', '▄▄▄▄▄▄▄')} ${cor('nf-2', '▄▄▄▄▄▄▄')}`,
+    `${cor('nf-1', bloco)} ${cor('nf-2', bloco)}`,
+    `${cor('nf-1', bloco)} ${cor('nf-2', bloco)}`,
+    `${cor('nf-1', '▀▀▀▀▀▀▀')} ${cor('nf-2', '▀▀▀▀▀▀▀')}`,
+    `${cor('nf-3', '▄▄▄▄▄▄▄')} ${cor('nf-4', '▄▄▄▄▄▄▄')}`,
+    `${cor('nf-3', bloco)} ${cor('nf-4', bloco)}`,
+    `${cor('nf-3', bloco)} ${cor('nf-4', bloco)}`,
+    `${cor('nf-3', '▀▀▀▀▀▀▀')} ${cor('nf-4', '▀▀▀▀▀▀▀')}`,
+  ];
+  const campo = (rotulo: string, valor: string) => `${cor('t-azul', rotulo)}: ${esc(valor)}`;
+  const info = [
+    `${cor('t-verde', 'guilherme')}@${cor('t-verde', 'macedos')}`,
+    '-----------------',
+    campo('SO', 'MacêdOS XP 2026 x86_64'),
+    campo('Kernel', '6.11.0-macedos'),
+    campo('Ligado há', `${minutosLigado()} min`),
+    campo('Pacotes', `${dados.projetos.length} (projetos)`),
+    campo('Shell', 'bash 5.2'),
+    campo('Tema', nomesEsquema[raiz.dataset.esquema ?? 'azul'] ?? 'Azul'),
+    campo('CPU', 'TypeScript + Python'),
+    campo('Local', 'Brasil'),
+    '',
+    ['nf-1', 'nf-2', 'nf-3', 'nf-4', 't-verde', 't-azul', 't-amarelo'].map((c) => cor(c, '███')).join(''),
+  ];
+  let html = '\n';
+  for (let i = 0; i < Math.max(arte.length, info.length); i++) html += `  ${arte[i] ?? ' '.repeat(15)}   ${info[i] ?? ''}\n`;
+  escreverHtml(`<span class="nf">${html}</span>\n`);
+}
+
+function top() {
+  const n = dados.projetos.length;
+  const ativo = (p: Projeto) => p.situacao === 'No ar' || p.situacao === 'Disponível';
+  const rodando = dados.projetos.filter(ativo).length;
+  escrever(
+    `top - ${new Date().toLocaleTimeString('pt-BR')} ligado há ${minutosLigado()} min,  1 usuário,  carga média: 0,42 0,37 0,30\n` +
+      `Tarefas: ${n} total, ${rodando} rodando, ${n - rodando} dormindo\n\n`,
+  );
+  escreverHtml('<span class="t-inverso">  PID USUÁRIO    %CPU %MEM S COMANDO              </span>\n');
+  dados.projetos.forEach((p, i) => {
+    const cpu = (((p.slug.length * 7.3 + i * 3.1) % 30) + (ativo(p) ? 9 : 0.4)).toFixed(1);
+    const mem = (((p.stack.length * 1.7) % 9) + 1).toFixed(1);
+    escrever(`${String(1000 + i * 137).padStart(5)} guilherme  ${cpu.padStart(5)} ${mem.padStart(4)} ${ativo(p) ? 'R' : 'S'} ${p.slug}\n`);
+  });
+  escrever('\n');
+}
+
+function apt(args: string[], root: boolean) {
+  const [acao, pacote] = args;
+  if (acao !== 'install' || !pacote) {
+    escrever('Uso: apt install <pacote>\n\n');
+    return;
+  }
+  if (!root) {
+    escrever('E: Não foi possível abrir o arquivo de trava /var/lib/dpkg/lock - open (13: Permissão negada)\nE: Você é root?\n\n', 'erro');
+    return;
+  }
+  escrever('Lendo listas de pacotes... Pronto\nConstruindo árvore de dependências... Pronto\n');
+  const p = dados.projetos.find((p) => p.slug === normalizar(pacote) || p.slug.startsWith(normalizar(pacote)));
+  if (p) escrever(`${p.slug} já é a versão mais nova (2026).\n0 pacotes atualizados, 0 pacotes novos instalados.\n\n`, 'ok');
+  else escrever(`E: Impossível encontrar o pacote ${pacote}\n\n`, 'erro');
+}
+
+const AJUDA =
+  'Comandos:\n' +
+  '  ls, cd, pwd, cat      andar pelas pastas (comece com: cd projetos)\n' +
+  '  abrir <nome>          abre um projeto, pasta ou arquivo (xdg-open também)\n' +
+  '  neofetch              informações do sistema\n' +
+  '  top                   os projetos como processos\n' +
+  '  stack <tecnologia>    projetos que usam a tecnologia\n' +
+  '  sobre, contato        quem é o Guilherme e como falar com ele\n' +
+  '  tema <azul|oliva|prata|noir|auto>\n' +
+  '  atividades            todas as janelas lado a lado\n' +
+  '  history, clear, exit  o de sempre\n\n';
 
 function rodar(linha: string) {
   const [cmd, ...args] = linha.split(/\s+/);
@@ -1184,36 +1487,74 @@ function rodar(linha: string) {
     case 'ajuda':
     case 'help':
     case '?':
-      escrever(
-        'Comandos:\n' +
-          '  projetos             lista os projetos (ls e dir também servem)\n' +
-          '  abrir <nome>         abre um projeto ou app (ex.: abrir nous)\n' +
-          '  stack <tecnologia>   projetos que usam a tecnologia\n' +
-          '  sobre                quem é o Guilherme\n' +
-          '  contato              e-mail e redes\n' +
-          '  tema <azul|oliva|prata|noir|auto>\n' +
-          '  mc                   Mission Control\n' +
-          '  limpar               limpa a tela (cls e clear também)\n' +
-          '  sair                 fecha o terminal\n\n',
-      );
+      escrever(AJUDA);
       break;
-    case 'projetos':
     case 'ls':
     case 'dir':
+    case 'll': {
+      const flags = args.filter((a) => a.startsWith('-')).join('');
+      const alvo = args.find((a) => !a.startsWith('-')) ?? '';
+      const c = resolver(alvo);
+      const t = tipo(c);
+      if (!t) escrever(`ls: não foi possível acessar '${alvo}': Arquivo ou diretório inexistente\n`, 'erro');
+      else if (t === 'arq') escrever(`${alvo}\n`);
+      else {
+        const itens = listar(c!, flags.includes('a') || cmd === 'll');
+        escreverHtml(`${itens.map((i) => (i.dir ? `<b class="t-azul">${esc(i.nome)}</b>` : esc(i.nome))).join('  ')}\n`);
+      }
+      break;
+    }
+    case 'projetos':
       for (const p of dados.projetos) escrever(`  ${p.slug.padEnd(22)}${p.tipo}\n`);
       escrever(`\n  ${dados.projetos.length} projetos. Use: abrir <nome>\n\n`, 'destaque');
       break;
+    case 'cd': {
+      const c = resolver(arg || '~');
+      const t = tipo(c);
+      if (t === 'dir') definirCwd(c!);
+      else if (t === 'arq') escrever(`bash: cd: ${arg}: Não é um diretório\n`, 'erro');
+      else escrever(`bash: cd: ${arg}: Arquivo ou diretório inexistente\n`, 'erro');
+      break;
+    }
+    case 'pwd':
+      escrever(`/home/guilherme${cwd.length ? `/${cwd.join('/')}` : ''}\n`);
+      break;
+    case 'cat':
+    case 'less':
+    case 'more': {
+      if (!arg) {
+        escrever(`${cmd}: falta um operando\n`, 'erro');
+        break;
+      }
+      const c = resolver(arg);
+      const t = tipo(c);
+      if (t === 'arq') escrever(lerArquivo(c!));
+      else if (t === 'dir') escrever(`${cmd}: ${arg}: É um diretório\n`, 'erro');
+      else escrever(`${cmd}: ${arg}: Arquivo ou diretório inexistente\n`, 'erro');
+      break;
+    }
     case 'abrir':
     case 'open':
+    case 'xdg-open':
     case 'start': {
-      const alvo = acharAlvo(arg);
-      if (!alvo) escrever(`Não encontrei "${arg}". Digite projetos para ver a lista.\n\n`, 'erro');
+      const alvo = acharAlvo(arg || '.');
+      if (!alvo) escrever(`Não encontrei "${arg}". Digite ls ~/projetos para ver a lista.\n\n`, 'erro');
       else {
         escrever(`Abrindo ${alvo.nome}...\n\n`, 'ok');
         executar(alvo.cmd);
       }
       break;
     }
+    case 'neofetch':
+    case 'screenfetch':
+    case 'fastfetch':
+      neofetch();
+      break;
+    case 'top':
+    case 'htop':
+    case 'ps':
+      top();
+      break;
     case 'stack': {
       const q = normalizar(arg);
       if (!q) {
@@ -1228,12 +1569,14 @@ function rodar(linha: string) {
       }
       break;
     }
-    case 'sobre':
     case 'whoami':
-      escrever(`${dados.nome}\n${dados.papel}. Faz software inteiro, do banco ao servidor, em TypeScript e Python.\n\n`);
+      escrever('guilherme\n');
+      break;
+    case 'sobre':
+      escrever(`${lerArquivo(['sobre.txt'])}\n`);
       break;
     case 'contato':
-      escrever(`E-mail:   ${dados.email}\nLinkedIn: ${dados.linkedin}\nGitHub:   ${dados.github}\n\n`);
+      escrever(`${lerArquivo(['contato.txt'])}\n`);
       break;
     case 'tema': {
       const v = normalizar(arg);
@@ -1244,23 +1587,36 @@ function rodar(linha: string) {
       }
       break;
     }
+    case 'atividades':
     case 'mc':
       entrarMc();
       break;
+    case 'uname':
+      escrever(args.includes('-a') ? 'Linux macedos 6.11.0-macedos #2026 SMP PREEMPT_DYNAMIC x86_64 GNU/Linux\n' : 'Linux\n');
+      break;
     case 'data':
     case 'date':
-      escrever(`${new Date().toLocaleString('pt-BR')}\n\n`);
-      break;
-    case 'ver':
-    case 'winver':
-    case 'uname':
-      escrever('MacêdOS XP versão 2026. Pele Luna, alma de Mac.\n\n');
+      escrever(`${new Date().toLocaleString('pt-BR')}\n`);
       break;
     case 'echo':
-      escrever(`${arg}\n\n`);
+      escrever(`${arg}\n`);
+      break;
+    case 'history':
+      [...historico].reverse().forEach((h, i) => escrever(`${String(i + 1).padStart(5)}  ${h}\n`));
+      break;
+    case 'man':
+      escrever(`Não há entrada de manual para ${arg || 'isso'}. Tente: ajuda\n`);
+      break;
+    case 'apt':
+    case 'apt-get':
+      apt(args, false);
       break;
     case 'sudo':
-      escrever('Permissão negada. Este incidente será reportado ao Guilherme.\n\n', 'erro');
+      if (args[0] === 'apt' || args[0] === 'apt-get') apt(args.slice(1), true);
+      else escrever('guilherme não está no arquivo sudoers. Este incidente será reportado.\n', 'erro');
+      break;
+    case 'rm':
+      escrever(arg.includes('-rf') ? 'rm: nada foi apagado. Aqui é um portfólio.\n' : `rm: não foi possível remover '${arg}': Permissão negada\n`, 'erro');
       break;
     case 'limpar':
     case 'cls':
@@ -1269,28 +1625,65 @@ function rodar(linha: string) {
       break;
     case 'sair':
     case 'exit':
+    case 'logout':
+      definirCwd([]);
       fechar('terminal');
       break;
     default:
-      escrever(
-        `'${cmd}' não é reconhecido como um comando interno\nou externo, um programa operável ou um arquivo em lotes.\nDigite ajuda para ver os comandos.\n\n`,
-        'erro',
-      );
+      escrever(`bash: ${cmd}: comando não encontrado\n`, 'erro');
   }
 }
 
-formTerminal.addEventListener('submit', (e) => {
-  e.preventDefault();
-  const linha = entrada.value;
-  entrada.value = '';
-  escrever(`C:\\Usuários\\Guilherme> ${linha}\n`);
+function rodarComEco(linha: string) {
+  escreverHtml(`${promptHtml()}${esc(linha)}\n`);
   if (linha.trim()) {
     historico.unshift(linha);
     posHistorico = -1;
     rodar(linha.trim());
   }
   terminal.scrollTop = terminal.scrollHeight;
+}
+
+formTerminal.addEventListener('submit', (e) => {
+  e.preventDefault();
+  const linha = entrada.value;
+  entrada.value = '';
+  rodarComEco(linha);
 });
+
+const COMANDOS = [
+  'ajuda', 'abrir', 'apt', 'atividades', 'cat', 'cd', 'clear', 'contato', 'date', 'echo', 'exit', 'history',
+  'ls', 'man', 'neofetch', 'pwd', 'sobre', 'stack', 'sudo', 'tema', 'top', 'uname', 'whoami', 'xdg-open',
+];
+
+// Tab completa o comando ou o caminho, como no bash. Com várias opções, lista todas.
+function completar() {
+  const v = entrada.value;
+  const partes = v.split(/\s+/);
+  const ultimo = partes[partes.length - 1];
+  let opcoes: string[];
+  let prefixo: string;
+  if (partes.length === 1) {
+    prefixo = '';
+    opcoes = COMANDOS.filter((c) => c.startsWith(ultimo)).map((c) => `${c} `);
+  } else {
+    const corte = ultimo.lastIndexOf('/');
+    prefixo = ultimo.slice(0, corte + 1);
+    const inicio = ultimo.slice(corte + 1);
+    const base = resolver(prefixo || '.');
+    opcoes = tipo(base) === 'dir' ? listar(base!, inicio.startsWith('.')).filter((i) => i.nome.startsWith(inicio)).map((i) => (i.dir ? `${i.nome}/` : `${i.nome} `)) : [];
+    if (!opcoes.length && /^(abrir|open|xdg-open|start)$/.test(partes[0]))
+      opcoes = dados.projetos.map((p) => `${p.slug} `).filter((s) => s.startsWith(ultimo));
+  }
+  if (opcoes.length === 1) {
+    partes[partes.length - 1] = prefixo + opcoes[0];
+    entrada.value = partes.join(' ');
+  } else if (opcoes.length > 1) {
+    escreverHtml(`${promptHtml()}${esc(v)}\n`);
+    escrever(`${opcoes.map((o) => o.trim()).join('  ')}\n`);
+    terminal.scrollTop = terminal.scrollHeight;
+  }
+}
 
 entrada.addEventListener('keydown', (e) => {
   if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
@@ -1298,17 +1691,96 @@ entrada.addEventListener('keydown', (e) => {
     posHistorico = limitarNum(posHistorico + (e.key === 'ArrowUp' ? 1 : -1), -1, historico.length - 1);
     entrada.value = posHistorico < 0 ? '' : historico[posHistorico];
   } else if (e.key === 'Tab') {
-    // Completa o nome do projeto depois de "abrir ".
-    const m = entrada.value.match(/^(abrir|open|start)\s+(\S*)$/i);
-    if (!m) return;
     e.preventDefault();
-    const p = dados.projetos.find((p) => p.slug.startsWith(normalizar(m[2])));
-    if (p) entrada.value = `${m[1]} ${p.slug}`;
+    completar();
+  } else if (e.key === 'l' && e.ctrlKey) {
+    e.preventDefault();
+    saida.textContent = '';
   }
 });
 
 terminal.addEventListener('click', () => {
   if (!getSelection()?.toString()) entrada.focus({ preventScroll: true });
+});
+
+/* ============================================================
+   O pinguim: de vez em quando sobe de trás do Dock, anda, acena e vai embora
+   ============================================================ */
+
+const pinguim = $<HTMLButtonElement>('[data-pinguim]')!;
+const falaPinguim = $('[data-pinguim-fala]', pinguim)!;
+let passeio: Animation | null = null;
+let timersPinguim: number[] = [];
+const FALAS = ['Oi!', 'Já viu o terminal?', 'sudo apt install café', 'Tem 7 projetos na pasta!', 'Clique em mim!', 'Experimente: neofetch'];
+
+function agendarPinguim(ms = 75_000) {
+  timersPinguim.push(window.setTimeout(passearPinguim, ms));
+}
+
+function passearPinguim() {
+  const ocupado =
+    movel.matches || semMovimento() || document.hidden || passeio || mcAtivo || !bootEl.hidden || !desligarEl.hidden || !desligadaEl.hidden;
+  const r = dock.getBoundingClientRect();
+  if (ocupado || r.width < 200) {
+    agendarPinguim(20_000);
+    return;
+  }
+  const largura = 34;
+  const x0 = r.left + 16;
+  const x1 = r.right - largura - 16;
+  const meio = (x0 + x1) / 2;
+  const andar = ((x1 - x0) / 2 / 40) * 1000; // 40 px/s em cada metade
+  const subir = 650;
+  const parar = 2600;
+  const total = subir * 2 + andar * 2 + parar;
+  const quadro = (x: number, y: number, t: number) => ({ transform: `translate(${x}px, ${y}px)`, offset: t / total });
+
+  pinguim.style.top = `${r.top - 40 + 3}px`;
+  pinguim.hidden = false;
+  pinguim.classList.add('andando');
+  passeio = pinguim.animate(
+    [
+      quadro(x0, 44, 0),
+      quadro(x0, 0, subir),
+      quadro(meio, 0, subir + andar),
+      quadro(meio, 0, subir + andar + parar),
+      quadro(x1, 0, subir + andar * 2 + parar),
+      quadro(x1, 44, total),
+    ],
+    { duration: total, easing: 'linear', fill: 'forwards' },
+  );
+  timersPinguim.push(
+    window.setTimeout(() => {
+      pinguim.classList.replace('andando', 'acenando');
+      falaPinguim.textContent = FALAS[Math.floor(Math.random() * FALAS.length)];
+      falaPinguim.hidden = false;
+    }, subir + andar),
+    window.setTimeout(() => {
+      pinguim.classList.replace('acenando', 'andando');
+      falaPinguim.hidden = true;
+    }, subir + andar + parar),
+  );
+  passeio.finished.then(fimPasseio, fimPasseio);
+}
+
+function fimPasseio() {
+  if (!passeio) return;
+  passeio = null;
+  for (const t of timersPinguim) clearTimeout(t);
+  timersPinguim = [];
+  pinguim.hidden = true;
+  pinguim.classList.remove('andando', 'acenando');
+  falaPinguim.hidden = true;
+  agendarPinguim();
+}
+
+pinguim.addEventListener('click', (ev) => {
+  ev.stopPropagation();
+  const p = passeio;
+  fimPasseio();
+  p?.cancel();
+  abrir('terminal', pinguim);
+  rodarComEco('neofetch');
 });
 
 /* ============================================================
@@ -1393,6 +1865,16 @@ function executar(cmd: string, origem?: Element | null) {
       break;
     case 'mc':
       alternarMc();
+      break;
+    case 'area':
+      irParaArea(Number(arg));
+      break;
+    case 'mover-area':
+      moverParaArea(ativa, Number(arg));
+      break;
+    case 'neofetch':
+      abrir('terminal', origemPara(origem, 'terminal'));
+      rodarComEco('neofetch');
       break;
     case 'busca':
       abrirBusca();
@@ -1586,6 +2068,12 @@ document.addEventListener('keydown', (ev) => {
       ev.preventDefault();
       executar('abrir-espiado');
     }
+    return;
+  }
+
+  if (ev.ctrlKey && ev.altKey && (ev.key === 'ArrowLeft' || ev.key === 'ArrowRight')) {
+    ev.preventDefault();
+    irParaArea(areaAtual + (ev.key === 'ArrowRight' ? 1 : -1));
     return;
   }
 

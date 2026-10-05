@@ -27,11 +27,10 @@ repositório: é só pedir.
 ## Sobre este repositório
 
 É o código do próprio site: o **MacêdOS XP**, um sistema operacional de mentira que roda no
-navegador. A pele é do Windows XP (janelas Luna, menu iniciar, a colina verde); o jeito de usar é do
-Mac (Dock com lupa, Spotlight, Quick Look, Mission Control e minimizar para o Dock). No celular, vira
-uma tela inicial de iPhone.
+navegador, com janelas, Dock, busca, áreas de trabalho, terminal e um pinguim. No celular, vira uma
+tela inicial com apps.
 
 Feito com [Astro](https://astro.build), sem framework de interface: as janelas saem prontas no HTML
 (quem abre sem JavaScript vê uma página comum) e um script em `src/scripts/os.ts` cuida do resto.
-Cada projeto continua com endereço próprio, em `/projetos/<nome>/`. Publicado no GitHub Pages a cada
-push, sem rastreadores.
+O papel de parede é gerado por `design/papel/gerar.py`. Cada projeto continua com endereço próprio,
+em `/projetos/<nome>/`. Publicado no GitHub Pages a cada push, sem rastreadores.
