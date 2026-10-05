@@ -1,4 +1,4 @@
-"""Gera o papel de parede do MacêdOS XP: uma colina verde sob nuvens, no espírito da "Bliss" do XP,
+"""Gera o papel de parede do GuiOs 26x.04p: uma colina verde sob nuvens, no espírito da "Bliss" do XP,
 mas desenhada inteiramente por código (a foto original tem direitos autorais).
 
 Uso:  python design/papel/gerar.py [largura]

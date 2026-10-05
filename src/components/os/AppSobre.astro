@@ -1,6 +1,5 @@
 ---
 // "Sobre este Mac", só que sobre o Guilherme.
-import Ic from './Ic.astro';
 import { site } from '../../site.config';
 
 interface Props {
@@ -16,7 +15,7 @@ const ferramentas = [
 ---
 
 <div class="rolagem sobre">
-  <Ic id="i-avatar" class="avatar" />
+  <img class="avatar foto" src="/perfil.webp" alt={`Foto de ${site.nome}`} width="320" height="320" decoding="async" />
   <h2>{site.nome}</h2>
   <p class="papel-txt">{site.papel} · {site.local}</p>
 
@@ -50,5 +49,5 @@ const ferramentas = [
     <a class="xp-btn primario" href="/#projetos" data-cmd="abrir:projetos">Ver projetos</a>
     <a class="xp-btn" href={`mailto:${site.email}`} data-cmd="abrir:contato">Falar comigo</a>
   </div>
-  <p class="rodape-mac">MacêdOS XP · versão 2026</p>
+  <p class="rodape-mac">GuiOs 26x.04p</p>
 </div>

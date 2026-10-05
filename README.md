@@ -26,7 +26,7 @@ repositório: é só pedir.
 
 ## Sobre este repositório
 
-É o código do próprio site: o **MacêdOS XP**, um sistema operacional de mentira que roda no
+É o código do próprio site: o **GuiOs 26x.04p**, um sistema operacional de mentira que roda no
 navegador, com janelas, Dock, busca, áreas de trabalho, terminal e um pinguim. No celular, vira uma
 tela inicial com apps.
 

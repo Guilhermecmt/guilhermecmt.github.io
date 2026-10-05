@@ -60,7 +60,7 @@ const apps = [
 const leiaMe = `LEIA-ME.txt
 ===========
 
-Bem-vindo ao MacêdOS XP, o portfólio de ${site.nome}.
+Bem-vindo ao GuiOs 26x.04p, o portfólio de ${site.nome}.
 
 COMO NAVEGAR
   - A pasta Projetos tem os ${projetos.length} projetos. Duplo clique abre um deles.
@@ -188,7 +188,7 @@ Feito à mão com Astro. Sem rastreadores.`;
   <!-- Menu iniciar -->
   <div class="menu-iniciar" id="menu-iniciar" role="menu" aria-label="Menu iniciar" hidden>
     <div class="mi-cab">
-      <Ic id="i-avatar" class="avatar" />
+      <img class="avatar foto" src="/perfil.webp" alt="" width="320" height="320" decoding="async" />
       {site.nome}
     </div>
     <div class="mi-corpo">
@@ -316,15 +316,15 @@ Feito à mão com Astro. Sem rastreadores.`;
       ))
     }
 
-    <Janela id="terminal" titulo="guilherme@macedos: ~" icone="i-terminal" app="Terminal" largura={720} altura={460} soJs>
+    <Janela id="terminal" titulo="guilherme@guios: ~" icone="i-terminal" app="Terminal" largura={720} altura={460} soJs>
       <div class="terminal" data-terminal>
-        <pre data-saida>Bem-vindo ao MacêdOS XP 2026 (GNU/Linux 6.11.0-macedos x86_64)
+        <pre data-saida>Bem-vindo ao GuiOs 26x.04p (GNU/Linux 6.11.0-guios x86_64)
 
 Digite <span class="t-amarelo">ajuda</span> para ver os comandos, ou experimente <span class="t-amarelo">neofetch</span>.
 
 </pre>
         <form class="linha" data-entrada>
-          <span class="prompt"><b class="t-verde">guilherme@macedos</b>:<b class="t-azul" data-cwd>~</b>$&nbsp;</span>
+          <span class="prompt"><b class="t-verde">guilherme@guios</b>:<b class="t-azul" data-cwd>~</b>$&nbsp;</span>
           <input type="text" aria-label="Comando" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="send" />
         </form>
       </div>
@@ -348,7 +348,7 @@ Digite <span class="t-amarelo">ajuda</span> para ver os comandos, ou experimente
       <div class="barra-status"><span data-lixeira-status>1 objeto</span></div>
     </Janela>
 
-    <Janela id="dialogo" titulo={erro404 ? 'Endereço não encontrado' : 'MacêdOS XP'} icone="i-info" app="MacêdOS XP" largura={420} altura="auto" soJs={!erro404}>
+    <Janela id="dialogo" titulo={erro404 ? 'Endereço não encontrado' : 'GuiOs 26x.04p'} icone="i-info" app="GuiOs 26x.04p" largura={420} altura="auto" soJs={!erro404}>
       <div class="dialogo">
         <span data-dlg-icone><Ic id={erro404 ? 'i-erro' : 'i-info'} /></span>
         <div data-dlg-texto>
@@ -416,9 +416,9 @@ Digite <span class="t-amarelo">ajuda</span> para ver os comandos, ou experimente
       </span>
     </div>
     <section class="widget">
-      <header><svg class="logo" aria-hidden="true"><use href="#i-logo"></use></svg> MacêdOS XP</header>
+      <header><svg class="logo" aria-hidden="true"><use href="#i-logo"></use></svg> GuiOs 26x.04p</header>
       <div class="w-corpo">
-        <Ic id="i-avatar" class="avatar" />
+        <img class="avatar foto" src="/perfil.webp" alt="" width="320" height="320" decoding="async" />
         <div>
           <h2>{site.nome}</h2>
           <p>{site.papel}. {projetos.length} projetos na pasta Projetos.</p>
@@ -517,7 +517,7 @@ Digite <span class="t-amarelo">ajuda</span> para ver os comandos, ou experimente
   <!-- Balão de notificação -->
   <div class="balao" data-balao role="status" hidden>
     <button class="balao-fechar" type="button" aria-label="Fechar aviso">✕</button>
-    <strong><Ic id="i-info" /> Bem-vindo ao MacêdOS XP</strong>
+    <strong><Ic id="i-info" /> Bem-vindo ao GuiOs 26x.04p</strong>
     <p data-balao-texto>
       Aperte <kbd>Ctrl</kbd> <kbd>K</kbd> para buscar qualquer coisa, ou clique aqui para ler o
       LEIA-ME com o passo a passo.
@@ -530,11 +530,11 @@ Digite <span class="t-amarelo">ajuda</span> para ver os comandos, ou experimente
     <div class="boot-centro">
       <div class="marca-os">
         <svg class="logo" aria-hidden="true"><use href="#i-logo"></use></svg>
-        <span class="nome"><small>{site.nome}</small>MacêdOS<sup>xp</sup></span>
+        <span class="nome"><small>{site.nome}</small>GuiOs<sup>26x.04p</sup></span>
       </div>
       <div class="progresso-xp" aria-hidden="true"><i></i><i></i><i></i></div>
     </div>
-    <div class="boot-rodape"><span>Copyright © {site.nome}</span><i>versão 2026</i></div>
+    <div class="boot-rodape"><span>Copyright © {site.nome}</span><i>versão 26x.04p</i></div>
   </div>
 
   <!-- Desligar -->

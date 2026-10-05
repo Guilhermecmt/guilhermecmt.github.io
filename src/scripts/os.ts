@@ -1,4 +1,4 @@
-// MacêdOS XP: gerenciador de janelas e o resto do comportamento da área de trabalho.
+// GuiOs 26x.04p: gerenciador de janelas e o resto do comportamento da área de trabalho.
 // Mistura três sistemas: a pele do Windows XP; o jeito de usar do Mac (Dock com lupa, busca,
 // espiar, visão de todas as janelas, minimizar para o Dock); e o Linux (terminal bash, áreas de
 // trabalho, Alt+arrastar, mensagens do systemd e o pinguim). No celular, vira uma tela de iPhone.
@@ -847,7 +847,7 @@ const indice: Resultado[] = [
   { grupo: 'Aplicativos', titulo: 'Sobre mim', sub: 'Sobre', icone: 'i-usuario', cmd: 'abrir:sobre', desc: 'Quem é o Guilherme e com o que ele trabalha.', extra: 'curriculo perfil guilherme' },
   { grupo: 'Aplicativos', titulo: 'Contato', sub: 'Correio', icone: 'i-correio', cmd: 'abrir:contato', desc: 'Mande um e-mail ou peça acesso a um repositório.', extra: 'email e-mail mensagem linkedin' },
   { grupo: 'Aplicativos', titulo: 'Terminal', sub: 'Prompt de comando', icone: 'i-terminal', cmd: 'abrir:terminal', desc: 'Para quem prefere digitar. Comece com "ajuda".', extra: 'cmd prompt console shell' },
-  { grupo: 'Aplicativos', titulo: 'LEIA-ME.txt', sub: 'Bloco de notas', icone: 'i-bloco', cmd: 'abrir:leiame', desc: 'Como usar o MacêdOS XP e os atalhos de teclado.', extra: 'ajuda atalhos leia me' },
+  { grupo: 'Aplicativos', titulo: 'LEIA-ME.txt', sub: 'Bloco de notas', icone: 'i-bloco', cmd: 'abrir:leiame', desc: 'Como usar o GuiOs 26x.04p e os atalhos de teclado.', extra: 'ajuda atalhos leia me' },
   { grupo: 'Aplicativos', titulo: 'Lixeira', sub: 'Lixeira', icone: 'i-lixeira-cheia', cmd: 'abrir:lixeira', desc: 'Tem uma coisa ali dentro.', extra: 'blog' },
   ...dados.projetos.map((p) => ({
     grupo: 'Projetos',
@@ -1124,8 +1124,8 @@ function digitarLog(el: HTMLElement, linhas: string[], passo: number) {
 
 function linhasBoot() {
   return [
-    '[    0.000000] Linux version 6.11.0-macedos (guilherme@macedos) #2026 SMP PREEMPT_DYNAMIC',
-    '[    0.418273] Carregando o MacêdOS XP...',
+    '[    0.000000] Linux version 6.11.0-guios (guilherme@guios) #2026 SMP PREEMPT_DYNAMIC',
+    '[    0.418273] Carregando o GuiOs 26x.04p...',
     `${OK} Iniciado o Registro do Sistema.`,
     `${OK} Montado /home/guilherme.`,
     `${OK} Montado /home/guilherme/projetos (${dados.projetos.length} itens).`,
@@ -1284,7 +1284,7 @@ function escreverHtml(html: string) {
 
 const caminhoTexto = (c: string[]) => (c.length ? `~/${c.join('/')}` : '~');
 const promptHtml = () =>
-  `<b class="t-verde">guilherme@macedos</b>:<b class="t-azul">${esc(caminhoTexto(cwd))}</b>$ `;
+  `<b class="t-verde">guilherme@guios</b>:<b class="t-azul">${esc(caminhoTexto(cwd))}</b>$ `;
 const minutosLigado = () => Math.max(1, Math.round((Date.now() - inicioSessao) / 60_000));
 const lixeiraCheia = () => !!$('[data-lixeira] .pr-item');
 
@@ -1374,7 +1374,7 @@ function alvoDeCaminho(c: string[]): { nome: string; cmd: string } | null {
 function definirCwd(c: string[]) {
   cwd = c;
   cwdEl.textContent = caminhoTexto(c);
-  const titulo = `guilherme@macedos: ${caminhoTexto(c)}`;
+  const titulo = `guilherme@guios: ${caminhoTexto(c)}`;
   const j = janelas.get('terminal')!;
   j.el.dataset.titulo = titulo;
   $('.janela-titulo', j.el)!.textContent = titulo;
@@ -1417,10 +1417,10 @@ function neofetch() {
   ];
   const campo = (rotulo: string, valor: string) => `${cor('t-azul', rotulo)}: ${esc(valor)}`;
   const info = [
-    `${cor('t-verde', 'guilherme')}@${cor('t-verde', 'macedos')}`,
+    `${cor('t-verde', 'guilherme')}@${cor('t-verde', 'guios')}`,
     '-----------------',
-    campo('SO', 'MacêdOS XP 2026 x86_64'),
-    campo('Kernel', '6.11.0-macedos'),
+    campo('SO', 'GuiOs 26x.04p x86_64'),
+    campo('Kernel', '6.11.0-guios'),
     campo('Ligado há', `${minutosLigado()} min`),
     campo('Pacotes', `${dados.projetos.length} (projetos)`),
     campo('Shell', 'bash 5.2'),
@@ -1592,7 +1592,7 @@ function rodar(linha: string) {
       entrarMc();
       break;
     case 'uname':
-      escrever(args.includes('-a') ? 'Linux macedos 6.11.0-macedos #2026 SMP PREEMPT_DYNAMIC x86_64 GNU/Linux\n' : 'Linux\n');
+      escrever(args.includes('-a') ? 'Linux guios 6.11.0-guios #2026 SMP PREEMPT_DYNAMIC x86_64 GNU/Linux\n' : 'Linux\n');
       break;
     case 'data':
     case 'date':
