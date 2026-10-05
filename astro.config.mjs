@@ -2,8 +2,8 @@
 import { defineConfig } from 'astro/config';
 
 export default defineConfig({
-  // Quando o domínio estiver definido, preencha `site` (usado nas URLs absolutas do Open Graph).
-  // site: 'https://seudominio.com.br',
+  // Endereço do GitHub Pages. Com domínio próprio, troque aqui também (vale para o Open Graph).
+  site: 'https://guilhermecmt.github.io',
   trailingSlash: 'ignore',
   build: { format: 'directory' },
 });

@@ -32,18 +32,14 @@ inicial, e o projeto com `ordem: 1` aparece em destaque.
 
 Antes de pôr uma captura nova, confira que ela não mostra chave, senha, dado de cliente ou dado financeiro real.
 
-## Publicar no Cloudflare Pages
+## Publicação
 
-1. No painel da Cloudflare: **Workers & Pages → Create → Pages → Connect to Git**, e escolha
-   `Guilhermecmt/portfolio`. O Cloudflare lê repositórios privados.
-2. Configuração do build:
-   - Framework preset: **Astro**
-   - Build command: `npm run build`
-   - Build output directory: `dist`
-   - A versão do Node vem do arquivo `.node-version` (22).
-3. Cada push no `main` publica de novo. Branches e pull requests ganham uma URL de pré-visualização.
-4. Domínio próprio: em **Custom domains**, adicione o domínio. Depois preencha `site` em
-   `astro.config.mjs` com a URL final, para as imagens de compartilhamento (Open Graph) saírem com
-   endereço absoluto.
+O site fica no GitHub Pages, de graça, em **https://guilhermecmt.github.io/**. Todo push no `main`
+roda o workflow `.github/workflows/deploy.yml`, que faz o build e publica em um ou dois minutos.
+Para acompanhar: `gh run list --workflow deploy.yml`.
 
-O arquivo `public/_headers` define o cache longo dos arquivos em `/_astro/` e cabeçalhos básicos de segurança.
+O repositório precisa ser público, porque o Pages do plano gratuito só publica a partir de
+repositório público. Isso não expõe nada: aqui só estão o texto e as imagens que o site já mostra.
+
+Para usar um domínio próprio mais tarde, configure em Settings → Pages → Custom domain e troque
+`site` em `astro.config.mjs`.
