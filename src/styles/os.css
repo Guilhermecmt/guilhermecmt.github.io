@@ -85,23 +85,8 @@ svg.ic {
   position: fixed;
   inset: 0;
   z-index: 0;
-  overflow: hidden;
-}
-
-.papel svg {
-  width: 100%;
-  height: 100%;
-  display: block;
-}
-
-.papel .estrelas {
-  opacity: var(--estrelas);
-  transition: opacity 1.2s;
-}
-
-.papel .astro {
-  opacity: var(--astro-brilho);
-  transition: opacity 1.2s;
+  background: var(--papel) 40% 50% / cover no-repeat, linear-gradient(180deg, var(--ceu-1), var(--ceu-3) 60%, var(--colina-2) 60%);
+  transition: background-image 0.6s;
 }
 
 /* ---------- Botões no estilo XP ---------- */
