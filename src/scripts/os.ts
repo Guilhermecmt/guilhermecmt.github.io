@@ -549,7 +549,7 @@ function ceuDaHora() {
 }
 
 function aplicarAparencia() {
-  const pref = local.ler('os.esquema') || 'auto';
+  const pref = local.ler('os.esquema') || 'azul';
   raiz.dataset.esquema = pref === 'auto' ? (prefereEscuro.matches ? 'noir' : 'azul') : pref;
   const ceu = local.ler('os.ceu') || 'dia';
   raiz.dataset.ceu = ceu === 'dinamico' ? ceuDaHora() : ceu;
@@ -560,7 +560,7 @@ function aplicarAparencia() {
 }
 
 function sincronizarCentral() {
-  const esquema = local.ler('os.esquema') || 'auto';
+  const esquema = local.ler('os.esquema') || 'azul';
   const ceu = local.ler('os.ceu') || 'dia';
   for (const b of $$('[data-cmd^="esquema:"]')) b.setAttribute('aria-pressed', String(b.dataset.cmd === `esquema:${esquema}`));
   for (const b of $$('[data-cmd^="ceu:"]')) b.setAttribute('aria-pressed', String(b.dataset.cmd === `ceu:${ceu}`));

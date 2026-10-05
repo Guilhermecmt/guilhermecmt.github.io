@@ -45,7 +45,7 @@ const ogImage = image && Astro.site ? new URL(image, Astro.site).href : image;
             return null;
           }
         };
-        var esquema = ler('os.esquema') || 'auto';
+        var esquema = ler('os.esquema') || 'azul';
         if (esquema === 'auto') esquema = matchMedia('(prefers-color-scheme: dark)').matches ? 'noir' : 'azul';
         r.dataset.esquema = esquema;
         var ceu = ler('os.ceu') || 'dia';
