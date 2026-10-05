@@ -350,6 +350,36 @@ Digite <span class="t-amarelo">ajuda</span> para ver os comandos, ou experimente
       <div class="barra-status"><span data-lixeira-status>1 objeto</span></div>
     </Janela>
 
+    <Janela id="cofre" titulo="Missão: o cofre do agente" icone="i-cadeado" app="Missão" largura={500} altura="auto" soJs>
+      <div class="cofre">
+        <p class="cofre-intro">
+          Para provar que você é humano (e com QI adequado), abra o cofre do agente. As três respostas
+          estão no próprio sistema.
+        </p>
+        <ol class="cofre-pistas">
+          <li>Quantos projetos há na pasta Projetos{projetos.length >= 10 ? ' (só o último algarismo)' : ''}?</li>
+          <li>Quantos esquemas de cores a central de controle oferece, contando o Auto?</li>
+          <li>Quantas cores tem a bandeira do logo do sistema?</li>
+        </ol>
+        <div class="cofre-segredo" role="group" aria-label="Combinação do cofre">
+          {
+            [0, 1, 2].map((i) => (
+              <div class="disco">
+                <button type="button" data-disco={i} data-passo="1" aria-label={`Aumentar o ${i + 1}º número`}>▲</button>
+                <output data-valor aria-label={`${i + 1}º número`}>0</output>
+                <button type="button" data-disco={i} data-passo="-1" aria-label={`Diminuir o ${i + 1}º número`}>▼</button>
+              </div>
+            ))
+          }
+        </div>
+        <p class="cofre-status" data-cofre-status aria-live="polite"></p>
+      </div>
+      <div class="dialogo-acoes">
+        <button class="xp-btn primario" type="button" data-cmd="testar-cofre">Abrir o cofre</button>
+        <button class="xp-btn" type="button" data-cmd="fechar:cofre">Desistir</button>
+      </div>
+    </Janela>
+
     <Janela id="dialogo" titulo={erro404 ? 'Endereço não encontrado' : 'GuiOs 26x.04p'} icone="i-info" app="GuiOs 26x.04p" largura={420} altura="auto" soJs={!erro404}>
       <div class="dialogo">
         <span data-dlg-icone><Ic id={erro404 ? 'i-erro' : 'i-info'} /></span>

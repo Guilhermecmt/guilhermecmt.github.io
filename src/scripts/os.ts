@@ -1286,7 +1286,7 @@ function escreverHtml(html: string) {
 
 const caminhoTexto = (c: string[]) => (c.length ? `~/${c.join('/')}` : '~');
 const promptHtml = () =>
-  `<b class="t-verde">guilherme@guios</b>:<b class="t-azul">${esc(caminhoTexto(cwd))}</b>$ `;
+  `<b class="t-verde">${humano() ? 'humano' : 'guilherme'}@guios</b>:<b class="t-azul">${esc(caminhoTexto(cwd))}</b>$ `;
 const minutosLigado = () => Math.max(1, Math.round((Date.now() - inicioSessao) / 60_000));
 const lixeiraCheia = () => !!$('[data-lixeira] .pr-item');
 
@@ -1376,7 +1376,7 @@ function alvoDeCaminho(c: string[]): { nome: string; cmd: string } | null {
 function definirCwd(c: string[]) {
   cwd = c;
   cwdEl.textContent = caminhoTexto(c);
-  const titulo = `guilherme@guios: ${caminhoTexto(c)}`;
+  const titulo = `${humano() ? 'humano' : 'guilherme'}@guios: ${caminhoTexto(c)}`;
   const j = janelas.get('terminal')!;
   j.el.dataset.titulo = titulo;
   $('.janela-titulo', j.el)!.textContent = titulo;
@@ -1482,6 +1482,12 @@ const AJUDA =
   '  atividades            todas as janelas lado a lado\n' +
   '  history, clear, exit  o de sempre\n\n';
 
+const AJUDA_SECRETA =
+  'Comandos secretos (só para humanos verificados):\n' +
+  '  cowsay <texto>        o agente diz o que você escrever\n' +
+  '  fortune               a frase do dia\n' +
+  '  sl                    para quem digita ls errado\n\n';
+
 function rodar(linha: string) {
   const [cmd, ...args] = linha.split(/\s+/);
   const arg = args.join(' ');
@@ -1490,6 +1496,23 @@ function rodar(linha: string) {
     case 'help':
     case '?':
       escrever(AJUDA);
+      if (humano()) escrever(AJUDA_SECRETA, 't-amarelo');
+      else escrever('Há três comandos secretos. Para liberar, complete a missão do agente: digite missao.\n\n', 't-amarelo');
+      break;
+    case 'cowsay':
+    case 'fortune':
+    case 'sl':
+      if (!humano()) {
+        escrever(`${cmd}: permissão negada. Comando secreto, só para humanos verificados.\nPara liberar: digite missao.\n\n`, 'erro');
+        break;
+      }
+      if (cmd === 'cowsay') cowsay(arg);
+      else if (cmd === 'fortune') fortune();
+      else sl();
+      break;
+    case 'aceitar':
+      escrever('Missão aceita. Abrindo o cofre...\n\n', 'ok');
+      abrirCofre();
       break;
     case 'ls':
     case 'dir':
@@ -1580,11 +1603,11 @@ function rodar(linha: string) {
       escrever(
         '╔══════════════ CONFIDENCIAL ══════════════╗\n' +
           '  Agente:   Pinguim (codinome Kernel)\n' +
-          '  Missão:   convencer você a falar com o Guilherme\n' +
+          '  Missão:   abrir o cofre e provar que você é humano\n' +
           '  Situação: infiltrado desde 2026\n' +
           '  Disfarce: caixa de papelão (testada e aprovada)\n' +
           '╚══════════════════════════════════════════╝\n' +
-          'Para aceitar a missão: abrir contato.txt\n\n',
+          (humano() ? 'Missão cumprida. Agora vá ver o portfólio: abrir projetos\n\n' : 'Para aceitar a missão: digite aceitar\n\n'),
         't-amarelo',
       );
       break;
@@ -1893,12 +1916,12 @@ function mostrarMissao() {
     'i-cadeado',
     '<p><b>CONFIDENCIAL</b> · só para os olhos de quem está visitando.</p>' +
       '<p><b>Agente:</b> Pinguim, codinome Kernel<br>' +
-      '<b>Missão:</b> se infiltrar neste sistema e convencer você a falar com o Guilherme<br>' +
-      '<b>Situação:</b> infiltrado desde 2026. Ninguém percebeu.</p>' +
+      '<b>Missão:</b> abrir o cofre do agente e provar que você é humano<br>' +
+      '<b>Recompensa:</b> o terminal secreto, com três comandos que o Windows não tem<br>' +
+      '<b>Lembrete:</b> você veio ver o portfólio do Guilherme. Não se distraia.</p>' +
       '<p class="autodestruir">Esta mensagem se autodestruirá em <b data-contagem>10</b> segundos.</p>',
     [
-      { rotulo: 'Aceitar a missão', cmd: 'missao-aceita', primario: true },
-      { rotulo: 'Abrir o terminal', cmd: 'neofetch' },
+      { rotulo: 'Aceitar a missão', cmd: 'cofre', primario: true },
       { rotulo: 'Fingir que não vi', cmd: 'fechar:dialogo' },
     ],
   );
@@ -1924,13 +1947,252 @@ function mostrarMissao() {
   }, 1000);
 }
 
-function aceitarMissao() {
-  abrir('contato', itemDock('contato'));
-  const assunto = $<HTMLInputElement>('#correio-assunto');
-  const mensagem = $<HTMLTextAreaElement>('#correio-msg');
-  if (assunto) assunto.value = 'Missão aceita';
-  if (mensagem && !mensagem.value) mensagem.value = 'Olá, Guilherme! O pinguim me mandou aqui. ';
-  mensagem?.focus({ preventScroll: true });
+/* O cofre do agente: um desafio simples, com as pistas no próprio sistema. Quem abre ganha o
+   terminal com "privilégios de ser humano" e três comandos que o terminal do Windows não tem. */
+
+const cofre = janelas.get('cofre')!;
+const discos = $$<HTMLOutputElement>('[data-valor]', cofre.el);
+const statusCofre = $('[data-cofre-status]', cofre.el)!;
+let tentativasCofre = 0;
+
+const humano = () => sessao.ler('os.humano') === '1';
+// Projetos na pasta (o último algarismo), esquemas de cores na central (com o Auto) e cores da bandeira.
+const combinacao = () => [dados.projetos.length % 10, 5, 4];
+
+function abrirCofre() {
+  tentativasCofre = 0;
+  for (const d of discos) d.textContent = '0';
+  statusCofre.textContent = '';
+  cofre.el.classList.remove('cofre-aberto');
+  cofre.geo = null;
+  abrir('cofre', pinguim.hidden ? null : pinguim);
+  $<HTMLButtonElement>('.disco button', cofre.el)?.focus({ preventScroll: true });
+}
+
+function girarDisco(i: number, passo: number) {
+  const d = discos[i];
+  if (!d) return;
+  d.textContent = String((Number(d.textContent) + passo + 10) % 10);
+  if (!semMovimento())
+    d.animate([{ transform: `translateY(${-passo * 8}px)`, opacity: 0.2 }, { transform: 'none', opacity: 1 }], { duration: 160 });
+}
+
+cofre.el.addEventListener('click', (ev) => {
+  const b = (ev.target as Element).closest<HTMLElement>('[data-disco]');
+  if (b) girarDisco(Number(b.dataset.disco), Number(b.dataset.passo));
+});
+
+cofre.el.addEventListener('keydown', (ev) => {
+  const disco = (ev.target as Element).closest('.disco');
+  if (!disco) return;
+  const i = discos.indexOf(disco.querySelector<HTMLOutputElement>('[data-valor]')!);
+  if (ev.key === 'ArrowUp' || ev.key === 'ArrowDown') {
+    ev.preventDefault();
+    girarDisco(i, ev.key === 'ArrowUp' ? 1 : -1);
+  } else if (/^[0-9]$/.test(ev.key)) {
+    ev.preventDefault();
+    discos[i].textContent = ev.key;
+    $$<HTMLButtonElement>('.disco button[data-passo="1"]', cofre.el)[i + 1]?.focus();
+  } else if (ev.key === 'Enter') {
+    ev.preventDefault();
+    testarCofre();
+  }
+});
+
+const ERROS_COFRE = [
+  'Errado. O agente desconfia que você é um robô.',
+  'Quase... ou não. Tente de novo.',
+  'O cofre riu de você. Baixinho.',
+  'Bip bop? Brincadeira. Tente outra vez.',
+];
+
+function testarCofre() {
+  const certa = combinacao();
+  if (discos.every((d, i) => Number(d.textContent) === certa[i])) {
+    statusCofre.textContent = 'Acesso concedido. Bem-vindo, humano.';
+    cofre.el.classList.add('cofre-aberto');
+    sessao.gravar('os.humano', '1');
+    window.setTimeout(() => {
+      fechar('cofre');
+      liberarTerminal();
+    }, semMovimento() ? 300 : 1200);
+    return;
+  }
+  tentativasCofre += 1;
+  statusCofre.textContent =
+    ERROS_COFRE[(tentativasCofre - 1) % ERROS_COFRE.length] +
+    (tentativasCofre >= 2
+      ? ' Dica: conte os projetos na pasta Projetos, os esquemas de cores na central de controle (o ícone de chaves) e as cores da bandeira do logo.'
+      : '');
+  if (!semMovimento())
+    $('.cofre-segredo', cofre.el)!.animate(
+      [
+        { transform: 'translateX(0)' },
+        { transform: 'translateX(-10px)' },
+        { transform: 'translateX(10px)' },
+        { transform: 'translateX(-6px)' },
+        { transform: 'translateX(0)' },
+      ],
+      { duration: 380 },
+    );
+}
+
+/* O terminal de quem abriu o cofre */
+
+const LEMBRETES = [
+  '(Lembrete do agente: você veio ver o portfólio do Guilherme. Digite abrir projetos.)',
+  '(Não se distraia, humano: o portfólio do Guilherme está em abrir projetos.)',
+  '(Missão principal: ver o portfólio do Guilherme. Missão secundária: se divertir.)',
+  `(Ainda dá tempo de ver os ${dados.projetos.length} projetos do Guilherme: abrir projetos.)`,
+];
+
+function lembrete() {
+  escrever(`${sortear(LEMBRETES)}\n\n`, 't-azul');
+}
+
+function atualizarPrompt() {
+  const usuario = humano() ? 'humano' : 'guilherme';
+  $('.prompt .t-verde', terminal)!.textContent = `${usuario}@guios`;
+  definirCwd(cwd);
+}
+
+function liberarTerminal() {
+  atualizarPrompt();
+  abrir('terminal', itemDock('terminal'));
+  escreverHtml(
+    '\n<span class="t-verde">╔══════════════════ ACESSO CONCEDIDO ══════════════════╗</span>\n' +
+      '<span class="t-amarelo">  Parabéns! Você conseguiu acessar o terminal com\n' +
+      '  privilégios de ser humano com QI adequado.</span>\n' +
+      '<span class="t-verde">╚══════════════════════════════════════════════════════╝</span>\n',
+  );
+  escrever('Comandos secretos liberados: cowsay, fortune e sl. O terminal do Windows não tem nenhum deles.\n');
+  lembrete();
+  terminal.scrollTop = terminal.scrollHeight;
+}
+
+// cowsay: o agente fala o que você escrever, num balão.
+function quebrar(texto: string, largura: number) {
+  const linhas: string[] = [];
+  let atual = '';
+  for (const palavra of texto.split(/\s+/)) {
+    if (atual && (atual + ' ' + palavra).length > largura) {
+      linhas.push(atual);
+      atual = palavra;
+    } else atual = atual ? `${atual} ${palavra}` : palavra;
+  }
+  if (atual) linhas.push(atual);
+  return linhas.map((l) => (l.length > largura ? l.slice(0, largura) : l));
+}
+
+const AGENTE_ASCII = [
+  '    \\',
+  '     \\    .----.',
+  '          | ■■ |',
+  '          |  ▼ |',
+  '         /|  ┃ |\\',
+  '        ( |  ┃ | )',
+  "          '----'",
+  '          _/  \\_',
+].join('\n');
+
+function cowsay(texto: string) {
+  const linhas = quebrar(texto.trim() || 'Já viu o portfólio do Guilherme?', 38);
+  const larg = Math.max(...linhas.map((l) => l.length));
+  let s = ` ${'_'.repeat(larg + 2)}\n`;
+  if (linhas.length === 1) s += `< ${linhas[0]} >\n`;
+  else
+    linhas.forEach((l, i) => {
+      const [a, b] = i === 0 ? ['/', '\\'] : i === linhas.length - 1 ? ['\\', '/'] : ['|', '|'];
+      s += `${a} ${l.padEnd(larg)} ${b}\n`;
+    });
+  s += ` ${'-'.repeat(larg + 2)}\n${AGENTE_ASCII}\n\n`;
+  escrever(s);
+  lembrete();
+}
+
+// fortune: a frase do dia, sempre puxando um projeto.
+const SORTES: Record<string, string> = {
+  'academia-dos-sabios': '"Conhece-te a ti mesmo." Sócrates. Hoje ele responde de volta. (abrir academia)',
+  compressor: 'Um PDF 75% menor é um PDF 75% mais feliz. (abrir compressor)',
+  'dashboards-hub': 'Um login, três painéis e nenhum post-it com senha. (abrir dashboards-hub)',
+  alexandria: 'Um tenant nunca vê o outro. Nem se pedir com jeitinho. (abrir alexandria)',
+  'gymnous-mind': 'Treino bom é o que sobe a carga sozinho. (abrir gymnous)',
+  stockgenius: 'Palpite é na feira; aqui a análise é auditável. (abrir stockgenius)',
+  nous: 'A melhor nuvem é a que roda no seu PC. (abrir nous)',
+  'llm-hub': 'VRAM cheia não é destino. Um clique resolve. (abrir llm-hub)',
+  rookgaard: 'Em Rookgaard todo mundo começa do zero. O jogo também: nenhum arquivo de imagem. (abrir rookgaard)',
+};
+
+function fortune() {
+  const frases = Object.entries(SORTES)
+    .filter(([slug]) => porSlug.has(slug))
+    .map(([, f]) => f);
+  escrever(`${sortear(frases)}\n\n`, 't-amarelo');
+  lembrete();
+}
+
+// sl: o trem dos projetos, para quando alguém erra o ls.
+function sl() {
+  const vagao = (nome: string) => [
+    '                 ',
+    '                 ',
+    '  _____________  ',
+    ' |             | ',
+    ` | ${(nome.length > 11 ? `${nome.slice(0, 10)}…` : nome).padEnd(11)} | `,
+    '=|_____________|=',
+    '   (o)     (o)   ',
+  ];
+  const locomotiva = (quadro: number) => [
+    quadro % 2 ? '   (@@)  ( )  (@) ' : '  ( )  (@@@)  ( ) ',
+    quadro % 2 ? '      ( )  (@)    ' : '     (@)  ( )     ',
+    '       ||         ',
+    '  _____||______   ',
+    ' |  []  GuiOs  |  ',
+    ' |_____________|==',
+    '  (O)(O)   (O)(O) ',
+  ];
+  const vagoes = dados.projetos.slice(0, 6).map((p) => vagao(p.titulo));
+  const desenho = (quadro: number) => locomotiva(quadro).map((linha, i) => linha + vagoes.map((v) => v[i]).join(''));
+  const comprimento = desenho(0)[0].length;
+
+  const medida = document.createElement('span');
+  medida.textContent = 'M'.repeat(10);
+  saida.append(medida);
+  const colunas = Math.max(40, Math.floor(terminal.clientWidth / (medida.getBoundingClientRect().width / 10)) - 2);
+  medida.remove();
+
+  const fim = () => {
+    escrever('Piuí! Esse era o trem dos projetos. (O sl existe para quem digita ls errado.)\n');
+    lembrete();
+    entrada.disabled = false;
+    entrada.focus({ preventScroll: true });
+    terminal.scrollTop = terminal.scrollHeight;
+  };
+
+  if (semMovimento()) {
+    escrever(`${desenho(0).map((l) => l.slice(0, colunas)).join('\n')}\n`);
+    fim();
+    return;
+  }
+  const bloco = document.createElement('div');
+  bloco.className = 'trem';
+  saida.append(bloco);
+  terminal.scrollTop = terminal.scrollHeight;
+  entrada.disabled = true;
+  let pos = colunas;
+  let quadro = 0;
+  const t = window.setInterval(() => {
+    quadro += 1;
+    pos -= 2;
+    bloco.textContent = desenho(quadro >> 2)
+      .map((l) => (pos >= 0 ? ' '.repeat(pos) + l : l.slice(-pos)).slice(0, colunas))
+      .join('\n');
+    if (pos < -comprimento) {
+      window.clearInterval(t);
+      bloco.remove();
+      fim();
+    }
+  }, 40);
 }
 
 pinguim.addEventListener('click', (ev) => {
@@ -2030,8 +2292,11 @@ function executar(cmd: string, origem?: Element | null) {
     case 'mover-area':
       moverParaArea(ativa, Number(arg));
       break;
-    case 'missao-aceita':
-      aceitarMissao();
+    case 'cofre':
+      abrirCofre();
+      break;
+    case 'testar-cofre':
+      testarCofre();
       break;
     case 'neofetch':
       abrir('terminal', origemPara(origem, 'terminal'));
@@ -2278,6 +2543,7 @@ if ('erro404' in os.dataset) {
 }
 
 aplicarAparencia();
+atualizarPrompt();
 definirVista(local.ler('os.vista') ?? (movel.matches ? 'lista' : 'icones'));
 selecionar(selecionado, false);
 atualizarBarra();
