@@ -1510,7 +1510,70 @@ const AJUDA_SECRETA =
   '  fortune               a frase do dia\n' +
   '  sl                    para quem digita ls errado\n\n';
 
+/* Easter eggs do terminal (não aparecem no ajuda). */
+
+let noVim = false;
+
+// Escreve as linhas aos poucos, com o terminal travado, como se o sistema estivesse "pensando".
+function digitarNoTerminal(partes: { texto: string; classe?: string; espera?: number }[]) {
+  entrada.disabled = true;
+  let i = 0;
+  const proxima = () => {
+    if (i >= partes.length) {
+      entrada.disabled = false;
+      entrada.focus({ preventScroll: true });
+      return;
+    }
+    const p = partes[i++];
+    escrever(p.texto, p.classe);
+    terminal.scrollTop = terminal.scrollHeight;
+    window.setTimeout(proxima, p.espera ?? 0);
+  };
+  proxima();
+}
+
+function sudo() {
+  const senha = Array.from({ length: 8 }, () => ({ texto: '*', espera: 110 }));
+  digitarNoTerminal([
+    { texto: '[sudo] password for visitor:\n\n', espera: 500 },
+    ...senha,
+    { texto: '\n\n', espera: 450 },
+    { texto: 'Desculpe, não vou entregar meus segredos tão facilmente.\n\n', classe: 't-amarelo' },
+  ]);
+}
+
+function hack() {
+  const barra = (n: number) => `[${'█'.repeat(n)}${'░'.repeat(10 - n)}] ${n * 10}%\n`;
+  digitarNoTerminal([
+    { texto: 'Iniciando invasão do mainframe...\n', classe: 't-verde', espera: 500 },
+    ...[2, 4, 6, 8, 9].map((n) => ({ texto: barra(n), classe: 't-verde', espera: 350 })),
+    { texto: 'Desviando o firewall com um clipe de papel...\n', classe: 't-verde', espera: 700 },
+    { texto: 'ACESSO NEGADO.\n', classe: 'erro', espera: 300 },
+    { texto: 'O único sistema aberto aqui é o portfólio do Guilherme: abrir projetos\n\n', classe: 't-azul' },
+  ]);
+}
+
+function ping(alvo: string) {
+  if (!normalizar(alvo).includes('guilherme')) {
+    escrever(`ping: ${alvo || '(nada)'}: Nome ou serviço desconhecido. Tente: ping guilherme\n\n`, 'erro');
+    return;
+  }
+  digitarNoTerminal([
+    { texto: 'PING guilherme (127.0.0.1): 56 bytes de dados\n', espera: 400 },
+    ...[0.42, 0.38, 0.4].map((ms, i) => ({ texto: `64 bytes de guilherme: icmp_seq=${i + 1} tempo=${String(ms).replace('.', ',')} ms\n`, espera: 600 })),
+    { texto: '--- estatísticas do guilherme ---\n3 enviados, 3 recebidos, 0% de perda. Ele responde rápido.\n', espera: 300 },
+    { texto: 'Para falar com ele de verdade: abrir contato\n\n', classe: 't-azul' },
+  ]);
+}
+
 function rodar(linha: string) {
+  if (noVim) {
+    if ([':q', ':q!', ':wq', ':x'].includes(linha.trim())) {
+      noVim = false;
+      escrever('Você saiu do vim. Pouca gente consegue. Isso merece um portfólio: abrir projetos\n\n', 't-verde');
+    } else escrever(`E492: Não é um comando do editor: ${linha}   (Dica: :q)\n`, 'erro');
+    return;
+  }
   const [cmd, ...args] = linha.split(/\s+/);
   const arg = args.join(' ');
   switch (normalizar(cmd)) {
@@ -1677,8 +1740,26 @@ function rodar(linha: string) {
       apt(args, false);
       break;
     case 'sudo':
-      if (args[0] === 'apt' || args[0] === 'apt-get') apt(args.slice(1), true);
-      else escrever('guilherme não está no arquivo sudoers. Este incidente será reportado.\n', 'erro');
+      sudo();
+      break;
+    case 'vim':
+    case 'vi':
+      noVim = true;
+      escrever('~\n~\n~\n"portfolio.txt" [somente leitura]\n', 't-azul');
+      escrever('Você entrou no vim. Boa sorte para sair.\n', 't-amarelo');
+      break;
+    case 'cafe':
+    case 'coffee':
+    case 'brew':
+      escrever('Erro 418: eu sou um bule de chá.\nCafé de verdade, só numa conversa com o Guilherme: abrir contato\n\n', 't-amarelo');
+      break;
+    case 'ping':
+      ping(arg);
+      break;
+    case 'hack':
+    case 'hacker':
+    case 'hackear':
+      hack();
       break;
     case 'rm':
       escrever(arg.includes('-rf') ? 'rm: nada foi apagado. Aqui é um portfólio.\n' : `rm: não foi possível remover '${arg}': Permissão negada\n`, 'erro');
