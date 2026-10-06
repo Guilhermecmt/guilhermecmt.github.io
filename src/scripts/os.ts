@@ -1302,6 +1302,7 @@ function escreverHtml(html: string) {
 
 const caminhoTexto = (c: string[]) => (c.length ? `~/${c.join('/')}` : '~');
 const promptHtml = () =>
+  modoClaude ? '<b class="t-claude">&gt;</b> ' :
   `<b class="t-verde">${humano() ? 'humano' : 'guilherme'}@guios</b>:<b class="t-azul">${esc(caminhoTexto(cwd))}</b>$ `;
 const minutosLigado = () => Math.max(1, Math.round((Date.now() - inicioSessao) / 60_000));
 const lixeiraCheia = () => !!$('[data-lixeira] .pr-item');
@@ -1589,7 +1590,116 @@ function ping(alvo: string) {
   ]);
 }
 
+/* "claude" no terminal: uma abertura no estilo do Claude Code, sem tokens, que pede uma chave de
+   API de 31.415.928.535 dígitos. Sai com /sair. */
+
+let modoClaude = false;
+let piadaClaude = 0;
+let digitosChave = 0;
+const DIGITOS_CHAVE = 31_415_928_535;
+const milhar = (n: number) => n.toLocaleString('pt-BR');
+
+const VERBOS_CLAUDE = ['Ponderando', 'Maquinando', 'Cogitando', 'Fermentando ideias', 'Consultando o pinguim', 'Contando tokens', 'Ruminando'];
+
+const PIADAS_CLAUDE = [
+  'Eu responderia, mas estou sem tokens. Enquanto isso, o Guilherme responde de graça: /contato',
+  'Analisei a pergunta com 0 tokens. Conclusão: os projetos do Guilherme são ótimos. (Não precisei de tokens para isso.)',
+  'Minha janela de contexto está vazia. A sua pode ter 9 projetos: /projetos',
+  'Erro 402: pagamento necessário. Aceito chave de API, café ou uma entrevista com o Guilherme.',
+  'Posso alucinar uma resposta, mas o Guilherme prefere que eu não faça isso no portfólio dele.',
+  'Pensei muito e escrevi um código lindo. Pena que ele mora num lugar sem tokens.',
+];
+
+// A caixa de boas-vindas, com as bordas alinhadas pelo tamanho de cada linha.
+function caixaClaude() {
+  const largura = 51;
+  const linhas = ['* Bem-vindo ao Claude Code (edição GuiOs)!', '', '  /ajuda para ajuda, /sair para sair', '', '  cwd: /home/guilherme'];
+  const meio = linhas.map((l) => `│ ${l.padEnd(largura - 1)}│`).join('\n');
+  const negrito = meio.replace('* Bem', '<b>*</b> Bem').replace('Claude Code', '<b>Claude Code</b>');
+  return `<span class="t-claude">╭${'─'.repeat(largura)}╮\n${negrito}\n╰${'─'.repeat(largura)}╯</span>\n\n`;
+}
+
+function abrirClaude() {
+  modoClaude = true;
+  digitosChave = 0;
+  saida.textContent = '';
+  terminal.classList.add('modo-claude');
+  escreverHtml(
+    caixaClaude() +
+      ' <span class="t-fraco">※ Dica: eu já li o portfólio inteiro do Guilherme. Você ainda não.</span>\n\n' +
+      ' <span class="t-amarelo">⚠ Tokens esgotados.</span>\n' +
+      `   Para liberar, digite sua chave de API: <b>${milhar(DIGITOS_CHAVE)}</b> números.\n` +
+      '   <span class="t-fraco">(Sim, parece o pi. Não, não tem desconto. Sim, eu conto um por um.)</span>\n\n',
+  );
+  terminal.scrollTop = terminal.scrollHeight;
+}
+
+function sairClaude() {
+  modoClaude = false;
+  terminal.classList.remove('modo-claude');
+  escrever('Até logo! Sem tokens não deu para ajudar, mas os projetos do Guilherme continuam aqui: abrir projetos\n\n', 't-claude');
+}
+
+function rodarClaude(linha: string) {
+  const t = linha.trim();
+  const c = normalizar(t);
+  if (!t) return;
+  if (['/sair', '/exit', '/quit', 'sair', 'exit', 'quit'].includes(c)) {
+    sairClaude();
+    return;
+  }
+  if (c === '/ajuda' || c === '/help') {
+    escrever(
+      '  /chave      quanto falta da chave de API\n' +
+        '  /projetos   abre os projetos do Guilherme (esse funciona sem tokens)\n' +
+        '  /contato    fala com o Guilherme (também sem tokens)\n' +
+        '  /sair       volta para o terminal\n\n',
+    );
+    return;
+  }
+  if (c === '/projetos') {
+    escrever('Abrindo os projetos. Esse é por minha conta.\n\n', 't-claude');
+    executar('abrir:projetos');
+    return;
+  }
+  if (c === '/contato') {
+    escrever('Abrindo o contato. Ele responde mais rápido que eu, hoje.\n\n', 't-claude');
+    executar('abrir:contato');
+    return;
+  }
+  const soDigitos = t.replace(/[\s.,-]/g, '');
+  if (c === '/chave' || /^\d+$/.test(soDigitos)) {
+    if (c !== '/chave') {
+      const pi = digitosChave === 0 && soDigitos.startsWith('314159');
+      digitosChave += soDigitos.length;
+      if (pi) escrever('Começou pelo pi. Respeito.\n', 't-claude');
+    }
+    const faltam = Math.max(0, DIGITOS_CHAVE - digitosChave);
+    // 5 dígitos por segundo, sem dormir nem piscar.
+    const anos = Math.round(faltam / 5 / 31_536_000);
+    if (!faltam) escrever('Chave completa. Infelizmente, ela expirou enquanto você digitava.\n\n', 't-amarelo');
+    else
+      escrever(
+        `Chave recebida: ${milhar(digitosChave)} de ${milhar(DIGITOS_CHAVE)} dígitos.\n` +
+          `Faltam ${milhar(faltam)}. No seu ritmo, termina em uns ${milhar(anos)} anos.\n` +
+          'Sugestão: enquanto isso, veja os projetos. /projetos\n\n',
+        't-amarelo',
+      );
+    return;
+  }
+  const verbo = sortear(VERBOS_CLAUDE);
+  const piada = PIADAS_CLAUDE[piadaClaude++ % PIADAS_CLAUDE.length];
+  digitarNoTerminal([
+    { texto: `✻ ${verbo}…\n`, classe: 't-claude', espera: 900 },
+    { texto: `⏺ ${piada}\n\n` },
+  ]);
+}
+
 function rodar(linha: string) {
+  if (modoClaude) {
+    rodarClaude(linha);
+    return;
+  }
   if (noVim) {
     if ([':q', ':q!', ':wq', ':x'].includes(linha.trim())) {
       noVim = false;
@@ -1703,6 +1813,9 @@ function rodar(linha: string) {
     }
     case 'whoami':
       escrever('guilherme\n');
+      break;
+    case 'claude':
+      abrirClaude();
       break;
     case 'paciencia':
     case 'solitaire':

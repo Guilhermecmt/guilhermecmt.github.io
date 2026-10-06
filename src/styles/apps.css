@@ -1117,6 +1117,25 @@
   cursor: pointer;
 }
 
+/* O modo "claude": laranja, com o prompt > */
+.terminal .t-claude {
+  color: #e8875f;
+}
+
+.terminal .t-fraco {
+  color: #a59aa5;
+}
+
+.terminal .prompt-claude,
+.terminal.modo-claude .prompt {
+  display: none;
+}
+
+.terminal.modo-claude .prompt-claude {
+  display: inline;
+  white-space: pre;
+}
+
 .terminal .prompt {
   white-space: pre;
 }
