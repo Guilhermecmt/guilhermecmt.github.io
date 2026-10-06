@@ -9,8 +9,14 @@ const ferramentas = [
 ---
 
 <div class="rolagem sobre">
-  <img class="avatar foto" src="/perfil.webp" alt={`Foto de ${site.nome}`} width="320" height="320" decoding="async" />
-  <h2>{site.nome}</h2>
+  <div class="foto-agente" data-foto-agente title="Clique três vezes">
+    <img class="avatar foto" src="/perfil.webp" alt={`Foto de ${site.nome}`} width="320" height="320" decoding="async" />
+    <svg class="oculos-meme" viewBox="0 0 30 8" shape-rendering="crispEdges" aria-hidden="true">
+      <path d="M0 0h30v2H0Z M1 2h11v3H1Z M2 5h9v1H2Z M3 6h7v1H3Z M18 2h11v3H18Z M19 5h9v1h-9Z M20 6h7v1h-7Z M12 2h6v1h-6Z" fill="#000"></path>
+      <path d="M3 2h2v1H3Z M5 3h2v1H5Z M20 2h2v1h-2Z M22 3h2v1h-2Z" fill="#fff"></path>
+    </svg>
+  </div>
+  <h2 data-nome>{site.nome}</h2>
   <p class="papel-txt">{site.papel} · {site.local}</p>
   <p class="slogan">{site.slogan}</p>
 

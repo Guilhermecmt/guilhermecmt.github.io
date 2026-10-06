@@ -602,6 +602,36 @@ Feito à mão com Astro. Sem rastreadores.`;
     </p>
   </div>
 
+  <!-- Protetor de tela: o logo quica pelas bordas depois de 2 minutos parado -->
+  <div class="protetor" data-protetor hidden aria-hidden="true">
+    <div class="dvd" data-dvd><svg class="logo"><use href="#i-logo"></use></svg><span>GuiOs</span></div>
+    <p class="canto" data-canto hidden>ACERTOU O CANTO!</p>
+  </div>
+
+  <!-- Tela azul: para quem digita format c: no terminal -->
+  <div class="tela-azul" data-tela-azul hidden role="alertdialog" aria-label="Erro do sistema">
+    <pre>{`Foi detectado um problema e o GuiOs foi desligado para evitar danos
+ao seu computador.
+
+VISITANTE_CURIOSO_DEMAIS
+
+O GuiOs encontrou um problema e precisa ser reiniciado.
+
+Se esta é a primeira vez que você vê esta tela de erro, respire fundo.
+Se ela aparecer de novo, siga estas etapas:
+
+Verifique se o comando digitado não era de outro sistema. Por aqui,
+ninguém formata nada nem apaga a system32.
+
+Informações técnicas:
+
+*** STOP: 0x000000GM (0xC0FFEE42, 0x00000009, 0xDEADBEEF, 0x00002026)
+
+***  guios.sys - Endereço F00D0042 base em F0000000, DateStamp 2026
+
+Pressione qualquer tecla para voltar ao portfólio_`}</pre>
+  </div>
+
   <!-- Inicialização -->
   <div class="boot" data-boot hidden>
     <pre class="boot-log" data-boot-log aria-hidden="true"></pre>

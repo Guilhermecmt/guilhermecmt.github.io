@@ -1761,8 +1761,34 @@ function rodar(linha: string) {
     case 'hackear':
       hack();
       break;
-    case 'rm':
-      escrever(arg.includes('-rf') ? 'rm: nada foi apagado. Aqui é um portfólio.\n' : `rm: não foi possível remover '${arg}': Permissão negada\n`, 'erro');
+    case 'rm': {
+      const alvoRm = args.filter((a) => !a.startsWith('-')).join(' ');
+      const c = resolver(alvoRm);
+      if (normalizar(alvoRm).includes('system32')) telaAzul();
+      else if (c && c[0] === 'projetos' && alvoRm)
+        escrever(`rm: não foi possível remover '${c[1] ?? 'projetos'}': o arquivo está em uso por um recrutador.\n`, 'erro');
+      else if (arg.includes('-rf')) escrever('rm: nada foi apagado. Aqui é um portfólio.\n', 'erro');
+      else escrever(`rm: não foi possível remover '${alvoRm}': Permissão negada\n`, 'erro');
+      break;
+    }
+    case 'format':
+      if (normalizar(arg).includes('c:')) telaAzul();
+      else escrever('Uso: format c:   (ninguém recomenda)\n', 'erro');
+      break;
+    case 'del':
+      if (normalizar(arg).includes('system32')) telaAzul();
+      else escrever('del: esse comando é de outro sistema. Por aqui, é rm.\n', 'erro');
+      break;
+    case 'matrix':
+      matrix();
+      break;
+    case 'git':
+      if (args[0] === 'blame') escrever('Tudo culpa do Guilherme. Inclusive as coisas boas.\n\n', 't-amarelo');
+      else if (args[0] === 'status') escrever('No ramo main\nnada a commitar, portfólio limpo\n\n');
+      else escrever('git: o repositório é privado, mas o portfólio é público: abrir projetos\n\n');
+      break;
+    case '42':
+      escrever('A resposta para a vida, o universo e tudo mais. E um bom café com o Guilherme.\n\n', 't-amarelo');
       break;
     case 'limpar':
     case 'cls':
@@ -1893,7 +1919,7 @@ let timerFalaPg = 0;
 const INTERVALO_PG = 34_000;
 
 const pinguimPode = () =>
-  !movel.matches && bootEl.hidden && desligarEl.hidden && desligadaEl.hidden && !mcAtivo && buscaEl.hidden && !espiado;
+  !movel.matches && protetorEl.hidden && telaAzulEl.hidden && bootEl.hidden && desligarEl.hidden && desligadaEl.hidden && !mcAtivo && buscaEl.hidden && !espiado;
 
 // Um ponto está "livre" quando nada além do papel de parede aparece ali.
 function livre(x: number, y: number) {
@@ -2477,6 +2503,248 @@ function sl() {
 
 
 /* ============================================================
+   Mais easter eggs: protetor de tela, tela azul, óculos na foto e a chuva do matrix
+   ============================================================ */
+
+/* Protetor de tela: depois de 2 minutos parado, o logo quica pelas bordas. Acertar o canto
+   em cheio solta confete. */
+
+const protetorEl = $('[data-protetor]')!;
+const dvdEl = $('[data-dvd]', protetorEl)!;
+const cantoEl = $('[data-canto]', protetorEl)!;
+const ESPERA_PROTETOR = 120_000;
+const CORES_DVD = ['#5fd7ff', '#ff6fb5', '#9d7dff', '#ffc046', '#7ee787', '#ff8a5c'];
+let quadroProtetor = 0;
+let protetorDesde = 0;
+
+for (const evento of ['pointerdown', 'wheel', 'touchstart']) document.addEventListener(evento, () => (ultimaAtividade = Date.now()), true);
+
+function ligarProtetor() {
+  esconderPinguim(true);
+  fecharPopovers();
+  protetorEl.hidden = false;
+  protetorDesde = Date.now();
+  const w = innerWidth;
+  const h = innerHeight;
+  const lw = dvdEl.offsetWidth;
+  const lh = dvdEl.offsetHeight;
+  let x = Math.random() * (w - lw);
+  let y = Math.random() * (h - lh);
+  let vx = (Math.random() < 0.5 ? -1 : 1) * 170;
+  let vy = (Math.random() < 0.5 ? -1 : 1) * 125;
+  let cor = 0;
+  let antes = performance.now();
+  const passo = (agora: number) => {
+    const dt = Math.min(0.05, (agora - antes) / 1000);
+    antes = agora;
+    x += vx * dt;
+    y += vy * dt;
+    let bateuX = false;
+    let bateuY = false;
+    if (x <= 0 || x >= w - lw) {
+      x = limitarNum(x, 0, w - lw);
+      vx = -vx;
+      bateuX = true;
+    }
+    if (y <= 0 || y >= h - lh) {
+      y = limitarNum(y, 0, h - lh);
+      vy = -vy;
+      bateuY = true;
+    }
+    if (bateuX || bateuY) {
+      cor = (cor + 1) % CORES_DVD.length;
+      dvdEl.style.color = CORES_DVD[cor];
+      dvdEl.style.filter = `hue-rotate(${cor * 60}deg)`;
+      // Canto: bateu numa borda com a outra a poucos pixels.
+      const pertoX = x < 8 || x > w - lw - 8;
+      const pertoY = y < 8 || y > h - lh - 8;
+      if ((bateuX && pertoY) || (bateuY && pertoX)) acertouCanto();
+    }
+    dvdEl.style.transform = `translate(${x}px, ${y}px)`;
+    quadroProtetor = requestAnimationFrame(passo);
+  };
+  quadroProtetor = requestAnimationFrame(passo);
+}
+
+function acertouCanto() {
+  cantoEl.hidden = false;
+  window.setTimeout(() => (cantoEl.hidden = true), 2600);
+  for (let i = 0; i < 90; i++) {
+    const c = document.createElement('i');
+    c.className = 'confete';
+    c.style.left = `${Math.random() * 100}%`;
+    c.style.background = sortear(CORES_DVD);
+    c.style.animationDuration = `${1.6 + Math.random() * 1.8}s`;
+    c.style.animationDelay = `${Math.random() * 0.5}s`;
+    protetorEl.append(c);
+    window.setTimeout(() => c.remove(), 4200);
+  }
+}
+
+function desligarProtetor() {
+  if (protetorEl.hidden) return;
+  cancelAnimationFrame(quadroProtetor);
+  protetorEl.hidden = true;
+  cantoEl.hidden = true;
+  for (const c of $$('.confete', protetorEl)) c.remove();
+  ultimaAtividade = Date.now();
+}
+
+for (const evento of ['pointermove', 'pointerdown', 'wheel', 'touchstart'])
+  protetorEl.addEventListener(evento, () => {
+    if (Date.now() - protetorDesde > 500) desligarProtetor();
+  });
+
+window.setInterval(() => {
+  if (!protetorEl.hidden || movel.matches || semMovimento()) return;
+  if (!bootEl.hidden || !desligadaEl.hidden || !desligarEl.hidden || !telaAzulEl.hidden) return;
+  if (Date.now() - ultimaAtividade > ESPERA_PROTETOR) ligarProtetor();
+}, 2000);
+
+/* Tela azul: format c: ou del system32 no terminal. Qualquer tecla volta. */
+
+const telaAzulEl = $('[data-tela-azul]')!;
+
+function telaAzul() {
+  fecharPopovers();
+  esconderPinguim(true);
+  telaAzulEl.hidden = false;
+  entrada.blur();
+  const sair = (ev: Event) => {
+    ev.preventDefault();
+    ev.stopPropagation();
+    telaAzulEl.hidden = true;
+    document.removeEventListener('keydown', sair, true);
+    telaAzulEl.removeEventListener('pointerdown', sair);
+    escrever('O sistema se recuperou de um erro grave. Ninguém viu nada.\n\n', 't-amarelo');
+    terminal.scrollTop = terminal.scrollHeight;
+    entrada.focus({ preventScroll: true });
+  };
+  window.setTimeout(() => {
+    document.addEventListener('keydown', sair, true);
+    telaAzulEl.addEventListener('pointerdown', sair);
+  }, 700);
+}
+
+/* Óculos de agente: três cliques na foto do Sobre mim. */
+
+const fotoAgente = $('[data-foto-agente]')!;
+const nomeSobre = $('[data-nome]')!;
+let cliquesFoto = 0;
+let timerFoto = 0;
+
+fotoAgente.addEventListener('click', () => {
+  cliquesFoto += 1;
+  window.clearTimeout(timerFoto);
+  timerFoto = window.setTimeout(() => (cliquesFoto = 0), 650);
+  if (cliquesFoto >= 3) {
+    cliquesFoto = 0;
+    vestirOculos();
+  }
+});
+
+function vestirOculos() {
+  if (fotoAgente.classList.contains('de-oculos')) return;
+  const nomeOriginal = nomeSobre.textContent;
+  fotoAgente.classList.add('de-oculos');
+  const descida = semMovimento() ? 0 : 1650;
+  window.setTimeout(() => (nomeSobre.textContent = `Agente ${dados.nome.split(' ')[0]}`), descida);
+  window.setTimeout(() => {
+    if (!pinguimPode() || estadoPg !== 'oculto') return;
+    const perto = esconderijos(janelas.get('sobre')!.el);
+    const todos = perto.length ? perto : esconderijos();
+    if (!todos.length) return;
+    aparecer(sortear(todos), 'inteiro');
+    window.setTimeout(() => falar('Disfarce perfeito.', [], 3500), semMovimento() ? 0 : 440);
+  }, descida + 200);
+  window.setTimeout(() => {
+    fotoAgente.classList.add('tirando');
+    window.setTimeout(() => {
+      fotoAgente.classList.remove('de-oculos', 'tirando');
+      nomeSobre.textContent = nomeOriginal;
+    }, 450);
+  }, descida + 6500);
+}
+
+/* matrix: a chuva verde cobre o terminal, com os nomes dos projetos caindo no meio. */
+
+function matrix() {
+  const despertar = () => {
+    escrever('Acorde, visitante… o portfólio te espera.\n\n', 't-verde');
+    terminal.scrollTop = terminal.scrollHeight;
+  };
+  if (semMovimento()) {
+    despertar();
+    return;
+  }
+  const corpo = terminal.parentElement!;
+  const canvas = document.createElement('canvas');
+  canvas.className = 'matrix';
+  corpo.append(canvas);
+  const w = corpo.clientWidth;
+  const h = corpo.clientHeight;
+  const dpr = devicePixelRatio || 1;
+  canvas.width = w * dpr;
+  canvas.height = h * dpr;
+  const ctx = canvas.getContext('2d')!;
+  ctx.scale(dpr, dpr);
+  const tam = 16;
+  ctx.font = `${tam}px monospace`;
+  const colunas = Math.floor(w / tam);
+  const gotas = Array.from({ length: colunas }, () => Math.random() * -(h / tam));
+  const palavra: (string | null)[] = Array(colunas).fill(null);
+  const pos = Array(colunas).fill(0);
+  const nomes = dados.projetos.map((p) => p.titulo.toUpperCase());
+  const simbolos = 'アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホ0123456789$#*+<>=GUIOS';
+  ctx.fillStyle = '#000';
+  ctx.fillRect(0, 0, w, h);
+  let antes = 0;
+  let quadro = 0;
+  const desenhar = (agora: number) => {
+    quadro = requestAnimationFrame(desenhar);
+    if (agora - antes < 55) return;
+    antes = agora;
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.08)';
+    ctx.fillRect(0, 0, w, h);
+    for (let i = 0; i < colunas; i++) {
+      let letra: string;
+      if (palavra[i]) {
+        letra = palavra[i]![pos[i]++];
+        if (pos[i] >= palavra[i]!.length) palavra[i] = null;
+        ctx.fillStyle = '#eaffef';
+      } else {
+        letra = simbolos[Math.floor(Math.random() * simbolos.length)];
+        ctx.fillStyle = '#35ff6a';
+        if (Math.random() < 0.004) {
+          palavra[i] = sortear(nomes);
+          pos[i] = 0;
+        }
+      }
+      ctx.fillText(letra, i * tam, gotas[i] * tam);
+      if (gotas[i] * tam > h && Math.random() > 0.975) gotas[i] = 0;
+      gotas[i] += 1;
+    }
+  };
+  quadro = requestAnimationFrame(desenhar);
+  entrada.disabled = true;
+  const parar = (ev: Event) => {
+    ev.preventDefault();
+    ev.stopPropagation();
+    cancelAnimationFrame(quadro);
+    canvas.remove();
+    document.removeEventListener('keydown', parar, true);
+    canvas.removeEventListener('pointerdown', parar);
+    entrada.disabled = false;
+    despertar();
+    entrada.focus({ preventScroll: true });
+  };
+  window.setTimeout(() => {
+    document.addEventListener('keydown', parar, true);
+    canvas.addEventListener('pointerdown', parar);
+  }, 350);
+}
+
+/* ============================================================
    Correio
    ============================================================ */
 
@@ -2736,6 +3004,11 @@ document.addEventListener('dblclick', (ev) => {
    ============================================================ */
 
 document.addEventListener('keydown', (ev) => {
+  if (!protetorEl.hidden) {
+    ev.preventDefault();
+    desligarProtetor();
+    return;
+  }
   const alvo = ev.target as Element;
   const emCampo = !!alvo.closest('input, textarea, select, [contenteditable="true"]');
 
