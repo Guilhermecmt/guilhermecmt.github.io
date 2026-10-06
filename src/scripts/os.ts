@@ -268,6 +268,7 @@ function abrir(id: string, origem?: Element | null, op: { semUrl?: boolean; geo?
   pular(id);
   if (!op.semUrl) sincronizarUrl(true);
 
+  if (id === 'terminal') mostrarAjudaInicial();
   const campo = id === 'terminal' ? $<HTMLInputElement>('[data-entrada] input', j.el) : null;
   if (campo && !movel.matches) campo.focus({ preventScroll: true });
   else if (id === 'dialogo') $<HTMLButtonElement>('.dialogo-acoes .xp-btn', j.el)?.focus({ preventScroll: true });
@@ -1677,6 +1678,15 @@ function rodar(linha: string) {
   }
 }
 
+let ajudaMostrada = false;
+
+// Na primeira vez que o terminal abre, a lista de comandos já aparece.
+function mostrarAjudaInicial() {
+  if (ajudaMostrada) return;
+  ajudaMostrada = true;
+  rodarComEco('ajuda');
+}
+
 function rodarComEco(linha: string) {
   escreverHtml(`${promptHtml()}${esc(linha)}\n`);
   if (linha.trim()) {
@@ -2059,6 +2069,7 @@ function atualizarPrompt() {
 
 function liberarTerminal() {
   atualizarPrompt();
+  ajudaMostrada = true;
   abrir('terminal', itemDock('terminal'));
   escreverHtml(
     '\n<span class="t-verde">╔══════════════════ ACESSO CONCEDIDO ══════════════════╗</span>\n' +
@@ -2068,7 +2079,7 @@ function liberarTerminal() {
   );
   escrever('Comandos secretos liberados: cowsay, fortune e sl. O terminal do Windows não tem nenhum deles.\n');
   lembrete();
-  terminal.scrollTop = terminal.scrollHeight;
+  rodarComEco('ajuda');
 }
 
 // cowsay: o agente fala o que você escrever, num balão.
