@@ -274,7 +274,10 @@ function abrir(id: string, origem?: Element | null, op: { semUrl?: boolean; geo?
 
   if (id === 'terminal') mostrarAjudaInicial();
   if (id === 'minas' || id === 'paciencia') prepararJogo(id);
-  if (id !== 'dialogo' && id !== 'cofre') aoAbrirJanelaPg(id);
+  if (id !== 'dialogo' && id !== 'cofre') {
+    aoAbrirJanelaPg(id);
+    falasAoAbrir(id);
+  }
   const campo = id === 'terminal' ? $<HTMLInputElement>('[data-entrada] input', j.el) : null;
   if (campo && !movel.matches) campo.focus({ preventScroll: true });
   else if (id === 'dialogo') $<HTMLButtonElement>('.dialogo-acoes .xp-btn', j.el)?.focus({ preventScroll: true });
@@ -307,6 +310,7 @@ function fechar(id?: string | null, op: { semUrl?: boolean; semAnim?: boolean } 
       })
       .finished.then(fim, fim);
   atualizarDock();
+  if (j.id === 'sobre' && !op.semAnim) falaSobreFechado();
   if (ativa === j.id) {
     ativa = null;
     const topo = porZ(visiveis())[0];
@@ -436,6 +440,7 @@ function arrastar(ev: PointerEvent, j: Janela, alca: HTMLElement, modo: 'mover' 
     aplicar(j);
   };
   const soltar = () => {
+    if (moveu && modo === 'mover') contarArraste(j.id);
     alca.removeEventListener('pointermove', mover);
     alca.removeEventListener('pointerup', soltar);
     alca.removeEventListener('pointercancel', soltar);
@@ -774,6 +779,7 @@ $<HTMLInputElement>('[data-filtro]', explorador)!.addEventListener('input', (ev)
   const visiveisAgora = itensVisiveis();
   if (visiveisAgora.length && !visiveisAgora.some((it) => it.dataset.slug === selecionado)) selecionar(visiveisAgora[0].dataset.slug!);
   atualizarStatus();
+  filtroVazio((ev.target as HTMLInputElement).value.trim());
 });
 
 explorador.addEventListener('click', (ev) => {
@@ -2102,7 +2108,7 @@ function esconderijos(so?: HTMLElement | null): Esconderijo[] {
       const lado = document.elementFromPoint(caixa.right + 14, caixa.bottom - 22);
       const descoberto = !!lado && !lado.closest('.janela, .dock, .barra-menu') && [null, ic].includes(lado.closest('.icone-mesa'));
       if (visivel && descoberto)
-        lista.push({ x: caixa.left + (caixa.width - 34) / 2, y: caixa.bottom - 38, lado: 'pasta', alvo: ic, r: caixa });
+        lista.push({ x: caixa.left + (caixa.width - 34) / 2, y: caixa.bottom - 38, lado: 'pasta', alvo: $('.ic-box', ic)!, r: caixa });
     }
   return lista;
 }
@@ -2280,12 +2286,15 @@ const dicasVistas = new Set<string>(JSON.parse(sessao.ler('os.dicas') || '[]'));
 
 function dica(chave: string, alvo: HTMLElement | null, texto: string, opcoes: OpcaoPg[]) {
   if (dicasVistas.has(chave) || !pinguimPode()) return;
+  // A fala de quem viu todos os projetos leva ao contato: essa pode passar na frente.
+  if (estadoPg === 'falando' && Date.now() - ultimaDicaEm < 10_000 && chave !== 'todos') return;
   if (estadoPg !== 'oculto') esconderPinguim(true);
   const perto = alvo ? esconderijos(alvo) : [];
   const todos = perto.length ? perto : esconderijos();
   if (!todos.length) return;
   dicasVistas.add(chave);
   sessao.gravar('os.dicas', JSON.stringify([...dicasVistas]));
+  ultimaDicaEm = Date.now();
   window.setTimeout(
     () => {
       aparecer(sortear(todos), 'inteiro');
@@ -2311,6 +2320,7 @@ function aoAbrirJanelaPg(id: string) {
   window.setTimeout(() => {
     const j = janelas.get(id);
     if (!j?.aberta || j.min || ativa !== id) return;
+    if (id.startsWith('projeto-') && recemFalou()) return;
     if (id === 'contato')
       dica('contato', j.el, 'Parece que você está escrevendo um e-mail. Quer ajuda?', [
         {
@@ -2361,6 +2371,134 @@ function aoAbrirJanelaPg(id: string) {
     }
   }, atraso);
 }
+
+/* Mais falas do agente, cada uma ligada a um momento do portfólio (uma vez por visita). */
+
+let ultimaDicaEm = 0;
+const recemFalou = () => Date.now() - ultimaDicaEm < 20_000;
+const projetosVistos = new Set<string>(JSON.parse(sessao.ler('os.vistos') || '[]'));
+let contatoJaAberto = false;
+const arrastes = new Map<string, number>();
+const chegouEm = Date.now();
+
+const opcaoContato = (rotulo: string, assunto: string, texto: string): OpcaoPg => ({
+  rotulo,
+  acao: () => {
+    esconderPinguim(true);
+    preencherEmail(assunto, texto);
+  },
+});
+
+// 1. O filtro de projetos não achou nada.
+let timerFiltro = 0;
+function filtroVazio(termo: string) {
+  window.clearTimeout(timerFiltro);
+  if (termo.length < 3) return;
+  timerFiltro = window.setTimeout(() => {
+    if (itensVisiveis().length) return;
+    dica('filtro', janelas.get('projetos')!.el, 'Procurei em todas as pastas. Esse projeto ainda não existe… mas o Guilherme pode fazer um.', [
+      opcaoContato('Pedir esse projeto', `Ideia de projeto: ${termo}`, `Olá, Guilherme! Procurei por "${termo}" no seu portfólio e não achei. Topa conversar sobre isso?`),
+      { rotulo: 'Só estava testando', acao: () => falar('Eu também testo tudo. Por isso me chamam de agente.', [], 3000) },
+    ]);
+  }, 1300);
+}
+
+// 2, 3, 6, 7 e 8: o que acontece ao abrir uma janela.
+function falasAoAbrir(id: string) {
+  if (id === 'contato') contatoJaAberto = true;
+
+  window.setTimeout(() => {
+    if (visiveis().length > 5)
+      dica('janelas', null, 'Uau, quantas janelas. Você está fazendo uma auditoria ou só gostou do sistema?', [
+        { rotulo: 'Organizar', acao: () => (esconderPinguim(true), entrarMc()) },
+        { rotulo: 'Gostei do sistema', acao: () => falar('Eu também. Moro aqui.', [], 2600) },
+      ]);
+  }, 700);
+
+  if (!id.startsWith('projeto-')) return;
+  const slug = id.slice('projeto-'.length);
+  const p = porSlug.get(slug);
+  if (!p) return;
+  projetosVistos.add(slug);
+  sessao.gravar('os.vistos', JSON.stringify([...projetosVistos]));
+
+  if (projetosVistos.size === dados.projetos.length)
+    window.setTimeout(
+      () =>
+        dica('todos', janelas.get(id)!.el, `Você viu os ${dados.projetos.length} projetos. Isso é mais dedicação do que muito recrutador. O próximo passo óbvio é…`, [
+          opcaoContato('Falar com o Guilherme', 'Vi todos os seus projetos', `Olá, Guilherme! Vi os ${dados.projetos.length} projetos do seu portfólio e gostaria de conversar.`),
+        ]),
+      2500,
+    );
+
+  const especial: Record<string, string> = {
+    rookgaard: 'Rookgaard! Eu comecei lá também. Fui morto por um rato.',
+    stockgenius: 'Dica de investimento do agente: invista no Guilherme. Rentabilidade passada não garante… brincadeira, garante sim.',
+  };
+  if (especial[slug])
+    window.setTimeout(() => {
+      const j = janelas.get(id);
+      if (j?.aberta && !j.min && ativa === id) dica(slug, j.el, especial[slug], [{ rotulo: 'Haha', acao: () => esconderPinguim() }]);
+    }, 4000);
+
+  // Mais de um minuto no mesmo projeto.
+  window.setTimeout(() => {
+    const j = janelas.get(id);
+    if (!j?.aberta || j.min || ativa !== id || recemFalou()) return;
+    const opcoes: OpcaoPg[] =
+      p.codigo === 'privado'
+        ? [opcaoContato('Quero ver o código', `Acesso ao código: ${p.titulo}`, `Olá, Guilherme! Li sobre o ${p.titulo} e gostaria de ver o código. Pode liberar o acesso ao repositório?`)]
+        : p.codigo === 'aberto' && p.repo
+          ? [{ rotulo: 'Quero ver o código', acao: () => (esconderPinguim(true), window.open(p.repo!, '_blank', 'noopener')) }]
+          : [opcaoContato('Quero saber mais', `Sobre o ${p.titulo}`, `Olá, Guilherme! Li sobre o ${p.titulo} e queria saber como foi feito.`)];
+    dica('leitura', j.el, 'Você está lendo tudo mesmo? Respeito. A maioria só olha as fotos.', [
+      ...opcoes,
+      { rotulo: 'Continuar lendo', acao: () => esconderPinguim() },
+    ]);
+  }, 60_000);
+}
+
+// 4. Modo escuro.
+function falaNoir() {
+  window.setTimeout(() => dica('noir', null, 'Modo escuro. Finalmente um ambiente adequado para um agente secreto.', []), 600);
+}
+
+// 5. A mesma janela arrastada várias vezes.
+function contarArraste(id: string) {
+  const n = (arrastes.get(id) ?? 0) + 1;
+  arrastes.set(id, n);
+  if (n === 4) dica('arraste', janelas.get(id)!.el, 'Ela fica melhor onde estava. Brincadeira. Eu nem sei onde ela estava.', []);
+}
+
+// 9. Fechou o Sobre mim sem falar com o Guilherme.
+function falaSobreFechado() {
+  if (contatoJaAberto) return;
+  window.setTimeout(
+    () =>
+      dica('sobre', null, 'Você conheceu o Guilherme e foi embora sem dar oi? Ele vai ficar sabendo.', [
+        opcaoContato('Dar oi', 'Oi!', 'Olá, Guilherme! Passei pelo seu portfólio e quis dar um oi.'),
+        { rotulo: 'Depois eu falo', acao: () => falar('Vou cobrar.', [], 2400) },
+      ]),
+    400,
+  );
+}
+
+// 10. O mouse saiu pelo topo da página, como quem vai fechar a aba (só depois de 1 minuto).
+document.documentElement.addEventListener('mouseleave', (ev) => {
+  if (ev.clientY > 2 || Date.now() - chegouEm < 60_000) return;
+  dica('saida', null, 'Já vai? O cofre ainda está fechado e tem um jogo de Paciência te esperando.', [
+    {
+      rotulo: 'Ficar mais um pouco',
+      acao: () => {
+        if (humano()) {
+          esconderPinguim(true);
+          abrir('projetos');
+        } else falar('Boa escolha. Comece pelo cofre:', opcoesMissao());
+      },
+    },
+    { rotulo: 'Tchau, agente', acao: () => falar('Tchau! Volte sempre. Eu vou estar aqui. Escondido.', [], 3200) },
+  ]);
+});
 
 /* A missão: uma mensagem confidencial que se autodestrói. */
 
@@ -3089,6 +3227,7 @@ function executar(cmd: string, origem?: Element | null) {
     case 'esquema':
       local.gravar('os.esquema', arg);
       aplicarAparencia();
+      if (arg === 'noir') falaNoir();
       return;
     case 'ceu':
       local.gravar('os.ceu', arg);
