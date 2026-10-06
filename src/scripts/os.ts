@@ -1517,9 +1517,21 @@ const AJUDA =
 
 const AJUDA_SECRETA =
   'Comandos secretos (só para humanos verificados):\n' +
+  '  matrix                a chuva verde (qualquer tecla para)\n' +
   '  cowsay <texto>        o agente diz o que você escrever\n' +
   '  fortune               a frase do dia\n' +
-  '  sl                    para quem digita ls errado\n\n';
+  '  sl                    para quem digita ls errado\n' +
+  '  hack                  invadir o mainframe (boa sorte)\n' +
+  '  ping guilherme        ver se ele responde\n' +
+  '  cafe                  pedir um café\n' +
+  '  git blame             descobrir o culpado\n' +
+  '  vim                   entrar (sair é outra história)\n' +
+  '  42                    a resposta\n\n';
+
+// Para quem não abriu o cofre, estes comandos simplesmente não existem.
+const COMANDOS_SECRETOS = new Set([
+  'matrix', 'cowsay', 'fortune', 'sl', 'hack', 'hacker', 'hackear', 'ping', 'cafe', 'coffee', 'brew', 'vim', 'vi', '42',
+]);
 
 /* Easter eggs do terminal (não aparecem no ajuda). */
 
@@ -1587,21 +1599,20 @@ function rodar(linha: string) {
   }
   const [cmd, ...args] = linha.split(/\s+/);
   const arg = args.join(' ');
+  if (COMANDOS_SECRETOS.has(normalizar(cmd)) && !humano()) {
+    escrever(`bash: ${cmd}: comando não encontrado\n`, 'erro');
+    return;
+  }
   switch (normalizar(cmd)) {
     case 'ajuda':
     case 'help':
     case '?':
       escrever(AJUDA);
       if (humano()) escrever(AJUDA_SECRETA, 't-amarelo');
-      else escrever('Há três comandos secretos. Para liberar, complete a missão do agente: digite missao.\n\n', 't-amarelo');
       break;
     case 'cowsay':
     case 'fortune':
     case 'sl':
-      if (!humano()) {
-        escrever(`${cmd}: permissão negada. Comando secreto, só para humanos verificados.\nPara liberar: digite missao.\n\n`, 'erro');
-        break;
-      }
       if (cmd === 'cowsay') cowsay(arg);
       else if (cmd === 'fortune') fortune();
       else sl();
@@ -1810,7 +1821,7 @@ function rodar(linha: string) {
       matrix();
       break;
     case 'git':
-      if (args[0] === 'blame') escrever('Tudo culpa do Guilherme. Inclusive as coisas boas.\n\n', 't-amarelo');
+      if (args[0] === 'blame' && humano()) escrever('Tudo culpa do Guilherme. Inclusive as coisas boas.\n\n', 't-amarelo');
       else if (args[0] === 'status') escrever('No ramo main\nnada a commitar, portfólio limpo\n\n');
       else escrever('git: o repositório é privado, mas o portfólio é público: abrir projetos\n\n');
       break;
@@ -2250,7 +2261,7 @@ function mostrarMissao() {
     '<p><b>CONFIDENCIAL</b> · só para os olhos de quem está visitando.</p>' +
       '<p><b>Agente:</b> Pinguim, codinome Kernel<br>' +
       '<b>Missão:</b> abrir o cofre do agente e provar que você é humano<br>' +
-      '<b>Recompensa:</b> o terminal secreto, com três comandos que o Windows não tem<br>' +
+      '<b>Recompensa:</b> o terminal secreto, com comandos que o Windows não tem<br>' +
       '<b>Lembrete:</b> você veio ver o portfólio do Guilherme. Não se distraia.</p>' +
       '<p class="autodestruir">Esta mensagem se autodestruirá em <b data-contagem>10</b> segundos.</p>',
     [
@@ -2281,7 +2292,7 @@ function mostrarMissao() {
 }
 
 /* O cofre do agente: um desafio simples, com as pistas no próprio sistema. Quem abre ganha o
-   terminal com "privilégios de ser humano" e três comandos que o terminal do Windows não tem. */
+   terminal com "privilégios de ser humano" e os comandos secretos, que o terminal do Windows não tem. */
 
 const cofre = janelas.get('cofre')!;
 const discos = $$<HTMLOutputElement>('[data-valor]', cofre.el);
@@ -2404,7 +2415,7 @@ function liberarTerminal() {
       '  privilégios de ser humano com QI adequado.</span>\n' +
       '<span class="t-verde">╚══════════════════════════════════════════════════════╝</span>\n',
   );
-  escrever('Comandos secretos liberados: cowsay, fortune e sl. O terminal do Windows não tem nenhum deles.\n');
+  escrever('Comandos secretos liberados. O terminal do Windows não tem nenhum deles: veja a lista logo abaixo.\n');
   lembrete();
   rodarComEco('ajuda');
 }
@@ -2508,11 +2519,6 @@ function sl() {
     terminal.scrollTop = terminal.scrollHeight;
   };
 
-  if (semMovimento()) {
-    escrever(`${desenho(0).map((l) => l.slice(0, colunas)).join('\n')}\n`);
-    fim();
-    return;
-  }
   const bloco = document.createElement('div');
   bloco.className = 'trem';
   saida.append(bloco);
@@ -2706,10 +2712,8 @@ function matrix() {
     escrever('Acorde, visitante… o portfólio te espera.\n\n', 't-verde');
     terminal.scrollTop = terminal.scrollHeight;
   };
-  if (semMovimento()) {
-    despertar();
-    return;
-  }
+  // A chuva só começa quando a pessoa pede, então aparece mesmo com as animações do sistema
+  // desligadas. Para com qualquer tecla, com um toque ou sozinha em 20 segundos.
   const corpo = terminal.parentElement!;
   const canvas = document.createElement('canvas');
   canvas.className = 'matrix';
@@ -2757,12 +2761,20 @@ function matrix() {
       if (gotas[i] * tam > h && Math.random() > 0.975) gotas[i] = 0;
       gotas[i] += 1;
     }
+    ctx.fillStyle = '#000';
+    ctx.fillRect(0, h - 26, w, 26);
+    ctx.fillStyle = '#35ff6a';
+    ctx.textAlign = 'center';
+    ctx.fillText('qualquer tecla ou um toque para acordar', w / 2, h - 8);
+    ctx.textAlign = 'left';
   };
   quadro = requestAnimationFrame(desenhar);
   entrada.disabled = true;
-  const parar = (ev: Event) => {
-    ev.preventDefault();
-    ev.stopPropagation();
+  let fimAutomatico = 0;
+  const parar = (ev?: Event) => {
+    ev?.preventDefault();
+    ev?.stopPropagation();
+    window.clearTimeout(fimAutomatico);
     cancelAnimationFrame(quadro);
     canvas.remove();
     document.removeEventListener('keydown', parar, true);
@@ -2771,6 +2783,7 @@ function matrix() {
     despertar();
     entrada.focus({ preventScroll: true });
   };
+  fimAutomatico = window.setTimeout(() => parar(), 20_000);
   window.setTimeout(() => {
     document.addEventListener('keydown', parar, true);
     canvas.addEventListener('pointerdown', parar);
