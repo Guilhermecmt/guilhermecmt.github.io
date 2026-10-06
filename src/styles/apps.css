@@ -1305,3 +1305,450 @@
 .dialogo-acoes .xp-btn {
   min-width: 80px;
 }
+
+/* ---------- Jogos: controle segmentado com texto ---------- */
+
+.seg.texto button {
+  width: auto;
+  padding: 0 10px;
+  font-size: 11.5px;
+  white-space: nowrap;
+}
+
+/* ---------- Campo Minado ---------- */
+
+#janela-minas .jb.max,
+#janela-minas .janela-alca {
+  display: none;
+}
+
+.minas {
+  --celula: 24px;
+  display: grid;
+  gap: 8px;
+  width: max-content;
+  padding: 10px;
+  font-family: var(--fonte-ui);
+}
+
+.minas-niveis {
+  justify-self: center;
+}
+
+/* A caixa cinza com bordas em relevo, como sempre foi */
+.minas-caixa {
+  display: grid;
+  gap: 8px;
+  padding: 8px;
+  background: #c0c0c0;
+  border: 3px solid;
+  border-color: #fff #7b7b7b #7b7b7b #fff;
+}
+
+.minas-painel {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 5px 6px;
+  border: 2px solid;
+  border-color: #7b7b7b #fff #fff #7b7b7b;
+}
+
+.led {
+  min-width: 3.3ch;
+  padding: 2px 3px;
+  border: 1px solid;
+  border-color: #7b7b7b #fff #fff #7b7b7b;
+  background: #000;
+  color: #ff2a1a;
+  font: 700 24px/1 'Lucida Console', Consolas, monospace;
+  letter-spacing: 1px;
+  text-align: center;
+  text-shadow: 0 0 5px rgb(255 30 0 / 0.7);
+}
+
+.carinha {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: 2px solid;
+  border-color: #fff #7b7b7b #7b7b7b #fff;
+  background: #c0c0c0;
+  cursor: pointer;
+}
+
+.carinha:active {
+  border-color: #7b7b7b #fff #fff #7b7b7b;
+}
+
+.carinha svg {
+  width: 26px;
+  height: 26px;
+}
+
+.carinha .olhos-x,
+.carinha .oculos,
+.carinha .boca-oh,
+.carinha .boca-triste {
+  display: none;
+}
+
+.carinha[data-estado='oh'] .boca-feliz,
+.carinha[data-estado='morto'] .boca-feliz,
+.carinha[data-estado='morto'] .olhos,
+.carinha[data-estado='agente'] .olhos {
+  display: none;
+}
+
+.carinha[data-estado='oh'] .boca-oh,
+.carinha[data-estado='morto'] .olhos-x,
+.carinha[data-estado='morto'] .boca-triste,
+.carinha[data-estado='agente'] .oculos {
+  display: inline;
+}
+
+.minas-grade-borda {
+  border: 3px solid;
+  border-color: #7b7b7b #fff #fff #7b7b7b;
+  overflow: auto;
+}
+
+.minas-grade {
+  display: grid;
+  grid-template-columns: repeat(var(--colunas, 9), var(--celula));
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  touch-action: manipulation;
+}
+
+.mc {
+  display: grid;
+  place-items: center;
+  width: var(--celula);
+  height: var(--celula);
+  padding: 0;
+  border: 0;
+  background: #c0c0c0;
+  box-shadow: inset 2px 2px #fff, inset -2px -2px #7b7b7b;
+  color: #000;
+  font: 700 calc(var(--celula) * 0.64) / 1 Tahoma, Verdana, sans-serif;
+  cursor: default;
+}
+
+.mc:focus-visible {
+  outline: 2px solid #000;
+  outline-offset: -5px;
+}
+
+.mc.aberta {
+  background: #c6c6c6;
+  box-shadow: inset 1px 1px #8a8a8a;
+}
+
+.mc.n1 {
+  color: #0000ff;
+}
+
+.mc.n2 {
+  color: #008000;
+}
+
+.mc.n3 {
+  color: #ff0000;
+}
+
+.mc.n4 {
+  color: #000080;
+}
+
+.mc.n5 {
+  color: #800000;
+}
+
+.mc.n6 {
+  color: #008080;
+}
+
+.mc.n7 {
+  color: #000;
+}
+
+.mc.n8 {
+  color: #7b7b7b;
+}
+
+.mc.bandeira,
+.bandeira-btn::before {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M9.2 1.5v10' stroke='%23000' stroke-width='1.5'/%3E%3Cpath d='M9.2 1.3 1.8 5l7.4 3.7Z' fill='%23e00' stroke='%23900' stroke-width='.5'/%3E%3Cpath d='M4 13.2h10v1.7H4ZM6.4 11.6h5.2v1.6H6.4Z' fill='%23000'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 82%;
+}
+
+.mc.mina,
+.mc.errada {
+  background: #c6c6c6 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M8 1.5v13M1.5 8h13M3.4 3.4l9.2 9.2M12.6 3.4l-9.2 9.2' stroke='%23000' stroke-width='1.5'/%3E%3Ccircle cx='8' cy='8' r='4.4'/%3E%3Ccircle cx='6.5' cy='6.5' r='1.2' fill='%23fff'/%3E%3C/svg%3E") center / 74% no-repeat;
+}
+
+.mc.explodiu {
+  background-color: #ff1a1a;
+}
+
+/* Bandeira no lugar errado: a mina riscada de vermelho */
+.mc.errada {
+  position: relative;
+  box-shadow: inset 1px 1px #8a8a8a;
+}
+
+.mc.errada::after {
+  content: '';
+  position: absolute;
+  inset: 12%;
+  background:
+    linear-gradient(45deg, transparent 44%, #e00 44% 56%, transparent 56%),
+    linear-gradient(-45deg, transparent 44%, #e00 44% 56%, transparent 56%);
+}
+
+.minas-rodape {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 11.5px;
+  color: var(--suave);
+}
+
+.bandeira-btn::before {
+  content: '';
+  width: 14px;
+  height: 14px;
+}
+
+.bandeira-btn[aria-pressed='true'] {
+  border-color: var(--primario-borda);
+  background: var(--primario);
+  color: var(--primario-texto);
+}
+
+/* ---------- Paciência ---------- */
+
+.pac-placar {
+  margin-left: auto;
+  font-size: 12px;
+  color: var(--suave);
+  font-variant-numeric: tabular-nums;
+}
+
+.pac-mesa {
+  --cw: 71px;
+  --ch: 99px;
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  background: radial-gradient(ellipse at 50% 25%, #23964a, #0d6428 70%, #0a5322);
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.vaga {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  width: var(--cw);
+  height: var(--ch);
+  border: 2px solid rgb(255 255 255 / 0.28);
+  border-radius: calc(var(--cw) * 0.08);
+  background: rgb(0 0 0 / 0.1);
+  color: rgb(255 255 255 / 0.32);
+  font: 700 calc(var(--cw) * 0.36) / 1 Georgia, serif;
+}
+
+.vaga-monte {
+  cursor: pointer;
+}
+
+.vaga-monte::after {
+  content: '\21BB';
+}
+
+.vaga-monte.vazio-final::after {
+  content: '';
+}
+
+.vaga-fundacao::after {
+  content: 'A';
+}
+
+.vaga-mesa::after {
+  content: 'K';
+}
+
+.carta {
+  position: absolute;
+  width: var(--cw);
+  height: var(--ch);
+  border-radius: calc(var(--cw) * 0.08);
+  cursor: pointer;
+  transition: left 0.2s ease, top 0.2s ease;
+}
+
+.carta.sem-transicao,
+.carta.arrastando {
+  transition: none;
+}
+
+.carta.arrastando {
+  filter: drop-shadow(0 10px 12px rgb(0 0 0 / 0.35));
+}
+
+.pc-frente,
+.pc-verso {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+}
+
+.pc-frente {
+  display: none;
+  background: #fff;
+  border: 1px solid #666;
+  color: #111;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.25);
+}
+
+.carta.aberta .pc-frente {
+  display: block;
+}
+
+.carta.aberta .pc-verso {
+  display: none;
+}
+
+.carta.vermelha .pc-frente {
+  color: #d01f2a;
+}
+
+.pc-canto {
+  position: absolute;
+  left: 7%;
+  top: 4%;
+  font: 700 calc(var(--cw) * 0.21) / 1.02 Georgia, 'Times New Roman', serif;
+  text-align: center;
+}
+
+.pc-canto.baixo {
+  left: auto;
+  top: auto;
+  right: 7%;
+  bottom: 4%;
+  transform: rotate(180deg);
+}
+
+.pc-centro {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  font-family: Georgia, 'Times New Roman', serif;
+  line-height: 1;
+}
+
+.pc-centro b {
+  font-size: calc(var(--cw) * 0.4);
+}
+
+.pc-centro i {
+  font-style: normal;
+  font-size: calc(var(--cw) * 0.46);
+}
+
+.pc-centro b + i {
+  font-size: calc(var(--cw) * 0.3);
+}
+
+.pc-verso {
+  display: grid;
+  place-items: center;
+  border: 3px solid #fff;
+  background: repeating-linear-gradient(45deg, #2a5bd6 0 4px, #1c43a8 4px 8px);
+  box-shadow: 0 0 0 1px #555, 0 1px 2px rgb(0 0 0 / 0.3);
+}
+
+.pc-verso {
+  overflow: hidden;
+}
+
+.pc-verso svg.ic {
+  width: calc(var(--cw) * 0.5);
+  height: calc(var(--cw) * 0.5);
+  filter: drop-shadow(0 1px 1px rgb(0 0 0 / 0.4));
+}
+
+.pac-chuva {
+  position: absolute;
+  inset: 0;
+  z-index: 3000;
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+}
+
+.pac-vitoria {
+  position: absolute;
+  left: 50%;
+  top: 45%;
+  z-index: 3001;
+  translate: -50% -50%;
+  padding: 18px 26px;
+  border: 1px solid #000;
+  border-radius: 10px;
+  background: var(--dica);
+  color: var(--dica-texto);
+  text-align: center;
+  box-shadow: 0 12px 30px rgb(0 0 0 / 0.4);
+  animation: zoomIn 0.25s var(--mola);
+}
+
+.pac-vitoria b {
+  font: 700 20px/1.2 var(--fonte-titulo);
+}
+
+.pac-vitoria p {
+  margin: 6px 0 12px;
+}
+
+@media (max-width: 759px) {
+  #janela-minas .janela-corpo {
+    overflow: auto;
+  }
+
+  .minas {
+    --celula: 30px;
+    width: auto;
+    justify-items: center;
+  }
+
+  .minas-caixa {
+    width: max-content;
+    max-width: 100%;
+  }
+
+  .minas-rodape {
+    width: 100%;
+  }
+
+  .pac-placar {
+    display: none;
+  }
+
+  .minas-grade[data-nivel='intermediario'],
+  .minas-grade[data-nivel='especialista'] {
+    --celula: 26px;
+  }
+}

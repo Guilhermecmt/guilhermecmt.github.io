@@ -1,0 +1,37 @@
+---
+// Campo Minado. O comportamento está em src/scripts/minas.ts.
+---
+
+<div class="minas" data-minas>
+  <div class="seg texto minas-niveis" role="group" aria-label="Nível">
+    <button type="button" data-minas-nivel="iniciante" aria-pressed="true">Iniciante</button>
+    <button type="button" data-minas-nivel="intermediario" aria-pressed="false">Intermediário</button>
+    <button type="button" data-minas-nivel="especialista" aria-pressed="false">Especialista</button>
+  </div>
+  <div class="minas-caixa">
+    <div class="minas-painel">
+      <span class="led" data-minas-contador aria-label="Minas restantes">010</span>
+      <button class="carinha" type="button" data-minas-carinha data-estado="feliz" aria-label="Novo jogo" title="Novo jogo">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="12" cy="12" r="10" fill="#ffd400" stroke="#000" stroke-width="1.2"></circle>
+          <g class="olhos"><circle cx="8.6" cy="9.4" r="1.4"></circle><circle cx="15.4" cy="9.4" r="1.4"></circle></g>
+          <g class="olhos-x" stroke="#000" stroke-width="1.3" stroke-linecap="round">
+            <path d="M7.2 8l2.8 2.8M10 8l-2.8 2.8M14 8l2.8 2.8M16.8 8 14 10.8"></path>
+          </g>
+          <g class="oculos"><path d="M4.4 8.2h15.2v1.5h-.9l-1.1 2.5h-4l-1-2.3h-1.2l-1 2.3h-4L5.3 9.7h-.9Z"></path></g>
+          <path class="boca-feliz" d="M7.4 14.2q4.6 4.2 9.2 0" fill="none" stroke="#000" stroke-width="1.5" stroke-linecap="round"></path>
+          <circle class="boca-oh" cx="12" cy="16" r="2.1" fill="none" stroke="#000" stroke-width="1.5"></circle>
+          <path class="boca-triste" d="M7.6 17.8q4.4-4 8.8 0" fill="none" stroke="#000" stroke-width="1.5" stroke-linecap="round"></path>
+        </svg>
+      </button>
+      <span class="led" data-minas-relogio aria-label="Tempo">000</span>
+    </div>
+    <div class="minas-grade-borda">
+      <div class="minas-grade" data-minas-grade aria-label="Campo minado"></div>
+    </div>
+  </div>
+  <div class="minas-rodape">
+    <button class="xp-btn bandeira-btn" type="button" data-minas-bandeira aria-pressed="false">Modo bandeira</button>
+    <span data-minas-recorde></span>
+  </div>
+</div>

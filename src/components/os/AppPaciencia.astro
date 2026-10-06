@@ -1,0 +1,17 @@
+---
+// Paciência. O comportamento está em src/scripts/paciencia.ts.
+---
+
+<div class="paciencia" data-paciencia style="display:contents">
+  <div class="barra-ferramentas">
+    <button class="xp-btn" type="button" data-pac="novo">Novo jogo</button>
+    <button class="xp-btn" type="button" data-pac="desfazer" disabled>Desfazer</button>
+    <div class="seg texto" role="group" aria-label="Cartas por vez">
+      <button type="button" data-pac-virar="1" aria-pressed="true">Virar 1</button>
+      <button type="button" data-pac-virar="3" aria-pressed="false">Virar 3</button>
+    </div>
+    <span class="pac-placar"><span data-pac-tempo>0:00</span> · <span data-pac-jogadas>0</span> jogadas</span>
+  </div>
+  <div class="pac-mesa" data-pac-mesa></div>
+  <div class="barra-status"><span data-pac-status>Arraste as cartas, ou toque numa delas para mandá-la ao melhor lugar.</span></div>
+</div>

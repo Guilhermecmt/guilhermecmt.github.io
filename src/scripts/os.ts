@@ -4,6 +4,9 @@
 // trabalho, Alt+arrastar, mensagens do systemd e um pinguim que espia de trás das janelas).
 // No celular, vira uma tela de iPhone.
 
+import { iniciarMinas } from './minas';
+import { iniciarPaciencia } from './paciencia';
+
 interface Projeto {
   slug: string;
   titulo: string;
@@ -270,6 +273,7 @@ function abrir(id: string, origem?: Element | null, op: { semUrl?: boolean; geo?
   if (!op.semUrl) sincronizarUrl(true);
 
   if (id === 'terminal') mostrarAjudaInicial();
+  if (id === 'minas' || id === 'paciencia') prepararJogo(id);
   if (id !== 'dialogo' && id !== 'cofre') aoAbrirJanelaPg(id);
   const campo = id === 'terminal' ? $<HTMLInputElement>('[data-entrada] input', j.el) : null;
   if (campo && !movel.matches) campo.focus({ preventScroll: true });
@@ -866,6 +870,8 @@ const indice: Resultado[] = [
   { grupo: 'Aplicativos', titulo: 'Contato', sub: 'Correio', icone: 'i-correio', cmd: 'abrir:contato', desc: 'Mande um e-mail ou peça acesso a um repositório.', extra: 'email e-mail mensagem linkedin' },
   { grupo: 'Aplicativos', titulo: 'Terminal', sub: 'Prompt de comando', icone: 'i-terminal', cmd: 'abrir:terminal', desc: 'Para quem prefere digitar. Comece com "ajuda".', extra: 'cmd prompt console shell' },
   { grupo: 'Aplicativos', titulo: 'LEIA-ME.txt', sub: 'Bloco de notas', icone: 'i-bloco', cmd: 'abrir:leiame', desc: 'Como usar o GuiOs 26x.04p e os atalhos de teclado.', extra: 'ajuda atalhos leia me' },
+  { grupo: 'Aplicativos', titulo: 'Paciência', sub: 'Jogo', icone: 'i-paciencia', cmd: 'abrir:paciencia', desc: 'O jogo de cartas, com a chuva de cartas quando você ganha.', extra: 'jogo cartas solitaire klondike' },
+  { grupo: 'Aplicativos', titulo: 'Campo Minado', sub: 'Jogo', icone: 'i-minas', cmd: 'abrir:minas', desc: 'Três níveis. O primeiro clique é sempre seguro.', extra: 'jogo minas minesweeper' },
   { grupo: 'Aplicativos', titulo: 'Lixeira', sub: 'Lixeira', icone: 'i-lixeira-cheia', cmd: 'abrir:lixeira', desc: 'Tem uma coisa ali dentro.', extra: 'blog' },
   ...dados.projetos.map((p) => ({
     grupo: 'Projetos',
@@ -1414,6 +1420,11 @@ const appsTerminal: Record<string, string> = {
   leiame: 'leiame',
   'leia-me': 'leiame',
   lixeira: 'lixeira',
+  paciencia: 'paciencia',
+  minas: 'minas',
+  'campo-minado': 'minas',
+  'campo minado': 'minas',
+  jogos: 'jogos',
 };
 
 function acharAlvo(arg: string): { nome: string; cmd: string } | null {
@@ -1681,6 +1692,22 @@ function rodar(linha: string) {
     }
     case 'whoami':
       escrever('guilherme\n');
+      break;
+    case 'paciencia':
+    case 'solitaire':
+    case 'sol':
+      escrever('Abrindo a Paciência...\n\n', 'ok');
+      executar('abrir:paciencia');
+      break;
+    case 'minas':
+    case 'campo-minado':
+    case 'winmine':
+    case 'minesweeper':
+      escrever('Abrindo o Campo Minado...\n\n', 'ok');
+      executar('abrir:minas');
+      break;
+    case 'jogos':
+      executar('abrir:jogos');
       break;
     case 'agente':
     case 'missao':
@@ -2154,7 +2181,8 @@ function preencherEmail(assuntoNovo: string, texto: string) {
 }
 
 function aoAbrirJanelaPg(id: string) {
-  const atraso = id === 'contato' ? 5000 : id === 'terminal' ? 3500 : id === 'lixeira' ? 2500 : id.startsWith('projeto-') ? 12_000 : 0;
+  const jogo = id === 'paciencia' || id === 'minas';
+  const atraso = id === 'contato' ? 5000 : id === 'terminal' ? 3500 : id === 'lixeira' ? 2500 : jogo ? 7000 : id.startsWith('projeto-') ? 12_000 : 0;
   if (!atraso) return;
   window.setTimeout(() => {
     const j = janelas.get(id);
@@ -2183,6 +2211,11 @@ function aoAbrirJanelaPg(id: string) {
           },
         },
         { rotulo: 'Sou um robô', acao: () => falar('Eu sabia. Bip bop.', [], 2600) },
+      ]);
+    else if (jogo)
+      dica('jogos', j.el, 'Parece que você está jogando em vez de ver o portfólio. Eu não conto para ninguém.', [
+        { rotulo: 'Valeu', acao: () => esconderPinguim() },
+        { rotulo: 'Ver os projetos', acao: () => (esconderPinguim(true), abrir('projetos')) },
       ]);
     else if (id === 'lixeira')
       dica('lixeira', j.el, 'Parece que você está mexendo no lixo. Eu também: achei um blog aí dentro.', [
@@ -2742,6 +2775,78 @@ function matrix() {
     document.addEventListener('keydown', parar, true);
     canvas.addEventListener('pointerdown', parar);
   }, 350);
+}
+
+/* ============================================================
+   Jogos: Paciência e Campo Minado (o jogo em si está em paciencia.ts e minas.ts)
+   ============================================================ */
+
+const jogosProntos = new Set<string>();
+
+// O pinguim comenta quando dá: perto da janela do jogo, se houver lugar.
+function comentarPinguim(id: string, texto: string, opcoes: OpcaoPg[] = []) {
+  if (!pinguimPode() || estadoPg !== 'oculto') return;
+  const perto = esconderijos(janelas.get(id)?.el ?? null);
+  const todos = perto.length ? perto : esconderijos();
+  if (!todos.length) return;
+  aparecer(sortear(todos), 'inteiro');
+  window.setTimeout(() => falar(texto, opcoes, opcoes.length ? 12_000 : 4500), semMovimento() ? 0 : 440);
+}
+
+// A janela do Campo Minado acompanha o tamanho do tabuleiro de cada nível.
+function ajustarAoConteudo(id: string) {
+  const j = janelas.get(id);
+  if (!j?.aberta || !j.geo || movel.matches) return;
+  const conteudo = $('.janela-corpo > *', j.el)!;
+  const a = area();
+  const w = Math.min(Math.ceil(conteudo.getBoundingClientRect().width) + 8, a.w);
+  j.geo.w = w;
+  aplicar(j);
+  const h = j.el.offsetHeight;
+  j.geo.x = limitarNum(j.geo.x, a.x, a.x + a.w - w);
+  j.geo.y = limitarNum(j.geo.y, a.y, a.y + a.h - h);
+  aplicar(j);
+}
+
+function prepararJogo(id: string) {
+  if (jogosProntos.has(id)) return;
+  jogosProntos.add(id);
+  if (id === 'minas') {
+    let primeira = true;
+    iniciarMinas({
+      raiz: $('[data-minas]')!,
+      aoMudarTamanho: () => {
+        ajustarAoConteudo('minas');
+        // Na primeira vez, centraliza de novo, já com o tamanho certo.
+        const j = janelas.get('minas')!;
+        if (primeira && j.geo && !movel.matches) {
+          primeira = false;
+          const a = area();
+          j.geo.x = Math.round(a.x + (a.w - j.geo.w) / 2);
+          j.geo.y = Math.round(a.y + Math.max(0, (a.h - j.el.offsetHeight) / 2 - 20));
+          aplicar(j);
+        }
+      },
+      aoVencer: (s, recorde) => {
+        const tempo = `${s} ${s === 1 ? 'segundo' : 'segundos'}`;
+        comentarPinguim('minas', recorde ? `${tempo}. Recorde! Óculos escuros merecidos.` : `Nenhuma explosão. ${tempo}, agente.`);
+      },
+      aoPerder: () =>
+        comentarPinguim(
+          'minas',
+          sortear(['Boom. Acontece.', 'Essa mina não estava no mapa. Ou estava.', 'Calma: até o Guilherme já explodiu algumas.']),
+        ),
+    });
+  } else if (id === 'paciencia') {
+    iniciarPaciencia({
+      raiz: $('[data-paciencia]')!,
+      aoVencer: () =>
+        comentarPinguim('paciencia', 'Você ganhou na paciência. Agora tenha paciência e veja os projetos.', [
+          { rotulo: 'Ver os projetos', acao: () => (esconderPinguim(true), abrir('projetos')) },
+          { rotulo: 'Mais uma partida', acao: () => esconderPinguim() },
+        ]),
+    });
+  }
 }
 
 /* ============================================================
