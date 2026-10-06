@@ -57,6 +57,13 @@ const apps = [
   { id: 'leiame', nome: 'LEIA-ME.txt', icone: 'i-bloco' },
 ];
 
+// Fica na pasta System, que só aparece com "Mostrar itens ocultos" (ou ls -a no terminal).
+const readmeFinal = `Você realmente abriu isso?
+
+...
+
+Respeito.`;
+
 const leiaMe = `LEIA-ME.txt
 ===========
 
@@ -165,6 +172,8 @@ Feito à mão com Astro. Sem rastreadores.`;
     <button type="button" role="menuitemradio" data-cmd="vista:lista" aria-checked="false">Como lista</button>
     <button type="button" role="menuitemradio" data-cmd="vista:galeria" aria-checked="false">Como galeria</button>
     <hr />
+    <button type="button" role="menuitemcheckbox" data-cmd="ocultos" aria-checked="false">Mostrar itens ocultos <kbd>Ctrl ⇧ .</kbd></button>
+    <hr />
     <button type="button" role="menuitem" data-cmd="espiar">Espiar projeto <kbd>Espaço</kbd></button>
     <button type="button" role="menuitem" data-cmd="mc">Atividades <kbd>F3</kbd></button>
   </div>
@@ -262,8 +271,9 @@ Feito à mão com Astro. Sem rastreadores.`;
         <button type="button" data-cmd="ceu:noite" aria-pressed="false">Noite</button>
       </div>
     </div>
-    <div class="cc-bloco">
+    <div class="cc-bloco cc-chaves">
       <label class="cc-chave">Reduzir movimento <input type="checkbox" data-movimento /></label>
+      <label class="cc-chave">Mostrar itens ocultos <input type="checkbox" data-ocultos /></label>
     </div>
   </div>
 
@@ -279,6 +289,12 @@ Feito à mão com Astro. Sem rastreadores.`;
         </li>
       ))
     }
+    <li data-oculto>
+      <button class="icone-mesa item-oculto" type="button" data-cmd-duplo="abrir:system">
+        <Ic id="i-pasta" />
+        <span>System</span>
+      </button>
+    </li>
   </ul>
   <button class="icone-mesa lixeira-mesa" type="button" data-cmd-duplo="abrir:lixeira">
     <Ic id="i-lixeira-cheia" class="ic-lixeira" />
@@ -346,6 +362,24 @@ Feito à mão com Astro. Sem rastreadores.`;
         <p class="lixeira-vazia" hidden>A Lixeira está vazia.</p>
       </div>
       <div class="barra-status"><span data-lixeira-status>1 objeto</span></div>
+    </Janela>
+
+    <Janela id="system" titulo="System" icone="i-pasta" app="Explorador" largura={480} altura={300} soJs>
+      <div class="endereco">
+        <span>Endereço</span>
+        <span class="campo"><Ic id="i-pasta" /> /home/guilherme/System</span>
+      </div>
+      <div class="lixeira-itens">
+        <button class="pr-item" type="button" data-cmd-duplo="abrir:readme-final">
+          <span class="cel-nome"><Ic id="i-bloco" /><span class="nome">README_FINAL_FINAL_2.txt</span></span>
+          <span class="tipo">Documento de texto</span>
+        </button>
+      </div>
+      <div class="barra-status"><span>1 objeto · pasta oculta</span></div>
+    </Janela>
+
+    <Janela id="readme-final" titulo="README_FINAL_FINAL_2.txt - Bloco de notas" icone="i-bloco" app="Bloco de notas" largura={420} altura={260} soJs>
+      <pre class="bloco" tabindex="0">{readmeFinal}</pre>
     </Janela>
 
     <Janela id="cofre" titulo="Missão: o cofre do agente" icone="i-cadeado" app="Missão" largura={540} altura="auto" soJs>
@@ -461,6 +495,7 @@ Feito à mão com Astro. Sem rastreadores.`;
       <li><button class="app-ic" type="button" data-cmd="abrir:leiame"><Ic id="i-bloco" /><span class="rotulo">LEIA-ME</span></button></li>
       <li><button class="app-ic" type="button" data-cmd="central"><Ic id="i-controle" /><span class="rotulo">Ajustes</span></button></li>
       <li><button class="app-ic" type="button" data-cmd="abrir:lixeira"><Ic id="i-lixeira-cheia" class="ic-lixeira" /><span class="rotulo">Lixeira</span></button></li>
+      <li data-oculto><button class="app-ic item-oculto" type="button" data-cmd="abrir:system"><Ic id="i-pasta" /><span class="rotulo">System</span></button></li>
       {
         projetos.map((p) => (
           <li>

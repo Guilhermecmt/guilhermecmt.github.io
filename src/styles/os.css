@@ -688,6 +688,26 @@ svg.ic {
   transform: translateX(16px);
 }
 
+/* ---------- Itens ocultos (pasta System) ---------- */
+
+html:not([data-ocultos]) [data-oculto] {
+  display: none !important;
+}
+
+/* Como no XP e no Mac, o que é oculto aparece meio apagado. */
+.item-oculto .ic-box {
+  opacity: 0.5;
+}
+
+.item-oculto > span:not(.ic-box) {
+  font-style: italic;
+}
+
+.cc-chaves {
+  display: grid;
+  gap: 10px;
+}
+
 /* ---------- Ícones da área de trabalho ---------- */
 
 .icones-mesa {

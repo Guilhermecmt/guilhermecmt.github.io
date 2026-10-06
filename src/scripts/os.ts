@@ -619,6 +619,19 @@ function sincronizarCentral() {
 }
 
 prefereEscuro.addEventListener('change', aplicarAparencia);
+
+// "Mostrar itens ocultos": revela a pasta System da área de trabalho.
+function aplicarOcultos(mostrar: boolean, avisar = false) {
+  if (mostrar) raiz.dataset.ocultos = '';
+  else delete raiz.dataset.ocultos;
+  local.gravar('os.ocultos', mostrar ? '1' : '0');
+  for (const b of $$('[data-cmd="ocultos"]')) b.setAttribute('aria-checked', String(mostrar));
+  $<HTMLInputElement>('[data-ocultos]')!.checked = mostrar;
+  if (mostrar && avisar)
+    mostrarBalao('Itens ocultos à mostra', 'Apareceu uma pasta System na área de trabalho. Ninguém sabe quem deixou ela ali.', null);
+}
+
+$<HTMLInputElement>('[data-ocultos]')!.addEventListener('change', (e) => aplicarOcultos((e.target as HTMLInputElement).checked, true));
 $<HTMLInputElement>('[data-movimento]')!.addEventListener('change', (e) => {
   local.gravar('os.movimento', (e.target as HTMLInputElement).checked ? 'reduzido' : 'normal');
   aplicarAparencia();
@@ -1318,7 +1331,9 @@ function resolver(arg: string): string[] | null {
 function tipo(c: string[] | null): 'dir' | 'arq' | null {
   if (!c) return null;
   if (c.length === 0) return 'dir';
-  if (c.length === 1) return c[0] === 'projetos' || c[0] === '.lixeira' ? 'dir' : ARQUIVOS_HOME.includes(c[0]) ? 'arq' : null;
+  if (c.length === 1)
+    return ['projetos', '.lixeira', 'System'].includes(c[0]) ? 'dir' : ARQUIVOS_HOME.includes(c[0]) ? 'arq' : null;
+  if (c[0] === 'System') return c.length === 2 && c[1] === 'README_FINAL_FINAL_2.txt' ? 'arq' : null;
   if (c[0] === 'projetos' && porSlug.has(c[1])) return c.length === 2 ? 'dir' : c.length === 3 && c[2] === 'README.md' ? 'arq' : null;
   if (c[0] === '.lixeira' && c.length === 2 && c[1] === 'portfolio-v1.html' && lixeiraCheia()) return 'arq';
   return null;
@@ -1327,19 +1342,21 @@ function tipo(c: string[] | null): 'dir' | 'arq' | null {
 function listar(c: string[], ocultos: boolean): { nome: string; dir: boolean }[] {
   if (c.length === 0)
     return [
-      ...(ocultos ? [{ nome: '.lixeira', dir: true }] : []),
+      ...(ocultos ? [{ nome: '.lixeira', dir: true }, { nome: 'System', dir: true }] : []),
       { nome: 'projetos', dir: true },
       ...ARQUIVOS_HOME.map((nome) => ({ nome, dir: false })),
     ];
   if (c[0] === 'projetos' && c.length === 1) return dados.projetos.map((p) => ({ nome: p.slug, dir: true }));
   if (c[0] === 'projetos' && c.length === 2) return [{ nome: 'README.md', dir: false }];
   if (c[0] === '.lixeira') return lixeiraCheia() ? [{ nome: 'portfolio-v1.html', dir: false }] : [];
+  if (c[0] === 'System') return [{ nome: 'README_FINAL_FINAL_2.txt', dir: false }];
   return [];
 }
 
 function lerArquivo(c: string[]) {
   const nome = c.join('/');
   if (nome === 'LEIA-ME.txt') return `${$('.bloco')?.textContent ?? ''}\n`;
+  if (nome === 'System/README_FINAL_FINAL_2.txt') return `${$('#janela-readme-final .bloco')?.textContent ?? ''}\n`;
   if (nome === 'sobre.txt')
     return (
       `${dados.nome}\n${dados.papel} · Brasil\nConstruo produtos digitais de ponta a ponta.\n\n` +
@@ -1362,6 +1379,8 @@ function lerArquivo(c: string[]) {
 
 function alvoDeCaminho(c: string[]): { nome: string; cmd: string } | null {
   if (!c.length) return null;
+  if (c[0] === 'System')
+    return c.length === 1 ? { nome: 'System', cmd: 'abrir:system' } : { nome: 'README_FINAL_FINAL_2.txt', cmd: 'abrir:readme-final' };
   if (c[0] === 'projetos') {
     if (c.length === 1) return { nome: 'Projetos', cmd: 'abrir:projetos' };
     const p = porSlug.get(c[1]);
@@ -1726,7 +1745,7 @@ function completar() {
     prefixo = ultimo.slice(0, corte + 1);
     const inicio = ultimo.slice(corte + 1);
     const base = resolver(prefixo || '.');
-    opcoes = tipo(base) === 'dir' ? listar(base!, inicio.startsWith('.')).filter((i) => i.nome.startsWith(inicio)).map((i) => (i.dir ? `${i.nome}/` : `${i.nome} `)) : [];
+    opcoes = tipo(base) === 'dir' ? listar(base!, inicio.length > 0).filter((i) => i.nome.startsWith(inicio)).map((i) => (i.dir ? `${i.nome}/` : `${i.nome} `)) : [];
     if (!opcoes.length && /^(abrir|open|xdg-open|start)$/.test(partes[0]))
       opcoes = dados.projetos.map((p) => `${p.slug} `).filter((s) => s.startsWith(ultimo));
   }
@@ -2462,6 +2481,9 @@ function executar(cmd: string, origem?: Element | null) {
     case 'area':
       irParaArea(Number(arg));
       break;
+    case 'ocultos':
+      aplicarOcultos(!('ocultos' in raiz.dataset), true);
+      break;
     case 'mover-area':
       moverParaArea(ativa, Number(arg));
       break;
@@ -2670,6 +2692,12 @@ document.addEventListener('keydown', (ev) => {
     return;
   }
 
+  if ((ev.ctrlKey || ev.metaKey) && ev.shiftKey && (ev.code === 'Period' || ev.key === '.' || ev.key === '>')) {
+    ev.preventDefault();
+    aplicarOcultos(!('ocultos' in raiz.dataset), true);
+    return;
+  }
+
   if (ev.ctrlKey && ev.altKey && (ev.key === 'ArrowLeft' || ev.key === 'ArrowRight')) {
     ev.preventDefault();
     irParaArea(areaAtual + (ev.key === 'ArrowRight' ? 1 : -1));
@@ -2716,6 +2744,7 @@ if ('erro404' in os.dataset) {
 }
 
 aplicarAparencia();
+aplicarOcultos(local.ler('os.ocultos') === '1');
 atualizarPrompt();
 definirVista(local.ler('os.vista') ?? (movel.matches ? 'lista' : 'icones'));
 selecionar(selecionado, false);
