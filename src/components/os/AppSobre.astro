@@ -2,12 +2,6 @@
 // "Sobre este Mac", só que sobre o Guilherme.
 import { site } from '../../site.config';
 
-interface Props {
-  totalProjetos: number;
-}
-
-const { totalProjetos } = Astro.props;
-
 const ferramentas = [
   'TypeScript', 'Python', 'Node.js', 'React', 'Next.js', 'NestJS', 'FastAPI', 'PostgreSQL',
   'Prisma', 'Redis', 'SQLite', 'DuckDB', 'Docker', 'Electron', 'Capacitor', 'Ollama',
@@ -18,27 +12,20 @@ const ferramentas = [
   <img class="avatar foto" src="/perfil.webp" alt={`Foto de ${site.nome}`} width="320" height="320" decoding="async" />
   <h2>{site.nome}</h2>
   <p class="papel-txt">{site.papel} · {site.local}</p>
+  <p class="slogan">{site.slogan}</p>
 
   <dl class="ficha-mac">
-    <dt>Faz</dt>
-    <dd>Software inteiro, do banco ao servidor</dd>
-    <dt>Linguagens</dt>
-    <dd>TypeScript e Python</dd>
-    <dt>Projetos</dt>
-    <dd>{totalProjetos} na pasta Projetos</dd>
-    <dt>Código</dt>
-    <dd>Privado na maioria; acesso sob pedido</dd>
+    <dt>Tecnologias</dt>
+    <dd>TypeScript · Python · APIs · IA</dd>
+    <dt>Interesses</dt>
+    <dd>Software · Automação · Produtos</dd>
   </dl>
 
   <div class="texto">
+    <p>Gosto de transformar problemas em software.</p>
     <p>
-      Gosto de levar um projeto do começo ao fim: modelar os dados, escrever a API, desenhar a
-      interface, empacotar o instalador e cuidar do servidor.
-    </p>
-    <p>
-      O que me interessa é software que dá para entender e manter. Por isso documento as decisões
-      junto do código, escrevo testes para o que não pode quebrar e prefiro ferramentas que o usuário
-      controla: dados locais, sem assinatura e sem depender de serviço de terceiros quando não precisa.
+      Trabalho da arquitetura e dos dados à interface, automação e infraestrutura — construindo
+      produtos que realmente possam ser usados, não apenas protótipos.
     </p>
     <ul class="etiquetas" aria-label="Ferramentas que uso">
       {ferramentas.map((f) => <li>{f}</li>)}

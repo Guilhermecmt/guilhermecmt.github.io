@@ -1344,7 +1344,13 @@ function listar(c: string[], ocultos: boolean): { nome: string; dir: boolean }[]
 function lerArquivo(c: string[]) {
   const nome = c.join('/');
   if (nome === 'LEIA-ME.txt') return `${$('.bloco')?.textContent ?? ''}\n`;
-  if (nome === 'sobre.txt') return `${dados.nome}\n${dados.papel}.\nFaz software inteiro, do banco ao servidor, em TypeScript e Python.\n`;
+  if (nome === 'sobre.txt')
+    return (
+      `${dados.nome}\n${dados.papel} · Brasil\nConstruo produtos digitais de ponta a ponta.\n\n` +
+      'Tecnologias: TypeScript · Python · APIs · IA\nInteresses:  Software · Automação · Produtos\n\n' +
+      'Gosto de transformar problemas em software. Trabalho da arquitetura e dos dados à interface,\n' +
+      'automação e infraestrutura, construindo produtos que realmente possam ser usados, não apenas protótipos.\n'
+    );
   if (nome === 'contato.txt') return `E-mail:   ${dados.email}\nLinkedIn: ${dados.linkedin}\nGitHub:   ${dados.github}\n`;
   if (c[0] === 'projetos') {
     const p = porSlug.get(c[1])!;

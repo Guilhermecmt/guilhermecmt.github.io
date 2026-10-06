@@ -841,6 +841,12 @@
   font-size: 13px;
 }
 
+.sobre .slogan {
+  margin: 8px 0 0;
+  font-size: 14px;
+  font-weight: 600;
+}
+
 .ficha-mac {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
