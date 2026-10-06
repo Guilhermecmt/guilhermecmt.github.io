@@ -1132,6 +1132,10 @@
   padding-left: 20px;
 }
 
+.sem-quebra {
+  white-space: nowrap;
+}
+
 .cofre-pistas li {
   margin-bottom: 3px;
 }

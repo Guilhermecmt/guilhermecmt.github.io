@@ -1956,8 +1956,9 @@ const statusCofre = $('[data-cofre-status]', cofre.el)!;
 let tentativasCofre = 0;
 
 const humano = () => sessao.ler('os.humano') === '1';
-// Projetos na pasta (o último algarismo), esquemas de cores na central (com o Auto) e cores da bandeira.
-const combinacao = () => [dados.projetos.length % 10, 5, 4];
+// Projetos na pasta (o último algarismo), depois quatro pegadinhas: os pinguins do Compressor (3),
+// a arca, que era de Noé (0), o que Sócrates sabia (1) e a precedência da multiplicação (6).
+const combinacao = () => [dados.projetos.length % 10, 3, 0, 1, 6];
 
 function abrirCofre() {
   tentativasCofre = 0;
@@ -2022,7 +2023,7 @@ function testarCofre() {
   statusCofre.textContent =
     ERROS_COFRE[(tentativasCofre - 1) % ERROS_COFRE.length] +
     (tentativasCofre >= 2
-      ? ' Dica: conte os projetos na pasta Projetos, os esquemas de cores na central de controle (o ícone de chaves) e as cores da bandeira do logo.'
+      ? ' Dica: a primeira resposta está na pasta Projetos. As outras são pegadinhas: leia de novo, com calma.'
       : '');
   if (!semMovimento())
     $('.cofre-segredo', cofre.el)!.animate(
