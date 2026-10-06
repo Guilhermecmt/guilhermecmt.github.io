@@ -1517,9 +1517,9 @@ const AJUDA =
 
 const AJUDA_SECRETA =
   'Comandos secretos (só para humanos verificados):\n' +
+  '  fortune               a frase do dia\n' +
   '  matrix                a chuva verde (qualquer tecla para)\n' +
   '  cowsay <texto>        o agente diz o que você escrever\n' +
-  '  fortune               a frase do dia\n' +
   '  sl                    para quem digita ls errado\n' +
   '  hack                  invadir o mainframe (boa sorte)\n' +
   '  ping guilherme        ver se ele responde\n' +
