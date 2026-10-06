@@ -1,7 +1,8 @@
 // GuiOs 26x.04p: gerenciador de janelas e o resto do comportamento da área de trabalho.
 // Mistura três sistemas: a pele do Windows XP; o jeito de usar do Mac (Dock com lupa, busca,
 // espiar, visão de todas as janelas, minimizar para o Dock); e o Linux (terminal bash, áreas de
-// trabalho, Alt+arrastar, mensagens do systemd e o pinguim). No celular, vira uma tela de iPhone.
+// trabalho, Alt+arrastar, mensagens do systemd e um pinguim que espia de trás das janelas).
+// No celular, vira uma tela de iPhone.
 
 interface Projeto {
   slug: string;
@@ -269,6 +270,7 @@ function abrir(id: string, origem?: Element | null, op: { semUrl?: boolean; geo?
   if (!op.semUrl) sincronizarUrl(true);
 
   if (id === 'terminal') mostrarAjudaInicial();
+  if (id !== 'dialogo' && id !== 'cofre') aoAbrirJanelaPg(id);
   const campo = id === 'terminal' ? $<HTMLInputElement>('[data-entrada] input', j.el) : null;
   if (campo && !movel.matches) campo.focus({ preventScroll: true });
   else if (id === 'dialogo') $<HTMLButtonElement>('.dialogo-acoes .xp-btn', j.el)?.focus({ preventScroll: true });
@@ -1159,15 +1161,9 @@ function layoutInicial() {
   sincronizarUrl(false);
 }
 
-let pinguimAgendado = false;
-
 function iniciarSessao(comBalao: boolean) {
   layoutInicial();
   if (comBalao) setTimeout(() => mostrarBalao(), 900);
-  if (!pinguimAgendado) {
-    pinguimAgendado = true;
-    agendarPinguim(comBalao ? 14_000 : 8_000);
-  }
 }
 
 function ligar(forcar = false) {
@@ -1226,7 +1222,7 @@ async function desligarAgora() {
   const abertas = [...janelas.values()].filter((j) => j.aberta).length;
   esconderDesligar();
   fecharTodas(true);
-  passeio?.cancel();
+  esconderPinguim(true);
   sessao.gravar('os.ligado', null);
   desligadaEl.hidden = false;
   if (semMovimento()) return;
@@ -1763,162 +1759,324 @@ terminal.addEventListener('click', () => {
 });
 
 /* ============================================================
-   O agente: um pinguim infiltrado no sistema. De vez em quando sobe de trás do Dock,
-   anda de mansinho, olha para os lados, fala no rádio e vai embora. Se o mouse chega
-   perto, ele se esconde numa caixa de papelão. Clicar nele entrega a missão.
+   O agente: um pinguim infiltrado que espia de trás das janelas e das pastas da área de
+   trabalho. Se o mouse chega perto, ele some; alguns segundos depois volta, com uma missão.
+   Também aparece em momentos oportunos, como aquele assistente que ninguém chamou.
    ============================================================ */
 
 const pinguim = $<HTMLButtonElement>('[data-pinguim]')!;
-const falaPinguim = $('[data-pinguim-fala]', pinguim)!;
-let passeio: Animation | null = null;
-let timersPinguim: number[] = [];
-let quadroPinguim = 0;
-let escondido = false;
-let tempoEscondido = 0;
-let timerSaida = 0;
+const balaoPg = $('[data-pg-balao]')!;
+const textoPg = $('[data-pg-texto]', balaoPg)!;
+const opcoesPg = $('[data-pg-opcoes]', balaoPg)!;
 
-const FALAS_RADIO = [
-  'Psiu… ninguém me viu.',
-  'Base, aqui é o Pinguim. Câmbio.',
-  'Disfarce de ícone do Dock: ativado.',
-  'Infiltração concluída. Ou quase.',
-  'Missão: deixar tudo mais livre.',
-];
-const FALAS_ACENO = [
-  'Clique em mim. Tenho uma missão.',
-  'Você não viu nada.',
-  'sudo apt install disfarce',
-  `Já espionou os ${dados.projetos.length} projetos?`,
-  'Esta conversa nunca aconteceu.',
-];
-const sortear = (lista: string[]) => lista[Math.floor(Math.random() * lista.length)];
+const sortear = <T,>(lista: T[]): T => lista[Math.floor(Math.random() * lista.length)];
 
-// Etapas do passeio, em milissegundos: sobe, anda, para e espia, anda, para e acena, anda, desce.
-interface Etapa {
-  fim: number;
-  pose: 'andando' | 'espiando' | 'acenando';
-  fala?: string;
+type Lado = 'topo' | 'direita' | 'esquerda' | 'pasta';
+interface Esconderijo {
+  x: number;
+  y: number;
+  lado: Lado;
+  alvo: HTMLElement;
+  r: DOMRect;
 }
-let etapas: Etapa[] = [];
-
-function agendarPinguim(ms = 75_000) {
-  timersPinguim.push(window.setTimeout(passearPinguim, ms));
+interface OpcaoPg {
+  rotulo: string;
+  acao: () => void;
 }
 
-function passearPinguim() {
-  const ocupado =
-    movel.matches || semMovimento() || document.hidden || passeio || mcAtivo || !bootEl.hidden || !desligarEl.hidden || !desligadaEl.hidden;
-  const r = dock.getBoundingClientRect();
-  if (ocupado || r.width < 200) {
-    agendarPinguim(20_000);
+let estadoPg: 'oculto' | 'espiando' | 'falando' = 'oculto';
+let esconderijo: Esconderijo | null = null;
+let ultimaAparicao = Date.now() - 22_000; // a primeira espiada vem uns 12 segundos depois de entrar
+let ultimaAtividade = Date.now();
+let voltaAgendada = 0;
+let timerFalaPg = 0;
+const INTERVALO_PG = 34_000;
+
+const pinguimPode = () =>
+  !movel.matches && bootEl.hidden && desligarEl.hidden && desligadaEl.hidden && !mcAtivo && buscaEl.hidden && !espiado;
+
+// Um ponto está "livre" quando nada além do papel de parede aparece ali.
+function livre(x: number, y: number) {
+  if (x < 4 || y < MENU_H + 4 || x > innerWidth - 4 || y > innerHeight - DOCK_H) return false;
+  const el = document.elementFromPoint(x, y);
+  return !!el && (!!el.closest('.papel') || el === os || el === document.body);
+}
+
+function esconderijos(so?: HTMLElement | null): Esconderijo[] {
+  const lista: Esconderijo[] = [];
+  for (const j of visiveis()) {
+    if (j.max || (so && j.el !== so)) continue;
+    const r = j.el.getBoundingClientRect();
+    for (const fx of [0.25, 0.5, 0.75]) {
+      const x = r.left + r.width * fx - 17;
+      if (livre(x + 17, r.top - 12) && livre(x + 6, r.top - 20)) lista.push({ x, y: r.top - 26, lado: 'topo', alvo: j.el, r });
+    }
+    for (const fy of [0.3, 0.65]) {
+      const y = r.top + r.height * fy - 20;
+      if (livre(r.right + 10, y + 12) && livre(r.right + 24, y + 30)) lista.push({ x: r.right - 34, y, lado: 'direita', alvo: j.el, r });
+      if (livre(r.left - 10, y + 12) && livre(r.left - 24, y + 30)) lista.push({ x: r.left, y, lado: 'esquerda', alvo: j.el, r });
+    }
+  }
+  if (!so)
+    for (const ic of $$('.icone-mesa')) {
+      const caixa = $('.ic-box', ic)!.getBoundingClientRect();
+      const visivel = document.elementFromPoint(caixa.left + caixa.width / 2, caixa.top + caixa.height / 2)?.closest('.icone-mesa') === ic;
+      // Ao lado do desenho da pasta, o botão do ícone é transparente: conta como livre.
+      const lado = document.elementFromPoint(caixa.right + 14, caixa.bottom - 22);
+      const descoberto = !!lado && !lado.closest('.janela, .dock, .barra-menu') && [null, ic].includes(lado.closest('.icone-mesa'));
+      if (visivel && descoberto)
+        lista.push({ x: caixa.left + (caixa.width - 34) / 2, y: caixa.bottom - 38, lado: 'pasta', alvo: ic, r: caixa });
+    }
+  return lista;
+}
+
+// Três posições para cada esconderijo: escondido, espiando e inteiro (para conversar).
+function poses(lado: Lado) {
+  switch (lado) {
+    case 'topo':
+      return { fora: 'translateY(32px)', espia: 'translateY(13px)', inteiro: 'translateY(0)' };
+    case 'direita':
+      return { fora: 'translateX(0)', espia: 'translateX(15px) rotate(13deg)', inteiro: 'translateX(31px) rotate(4deg)' };
+    case 'esquerda':
+      return { fora: 'translateX(0)', espia: 'translateX(-15px) rotate(-13deg)', inteiro: 'translateX(-31px) rotate(-4deg)' };
+    case 'pasta':
+      return { fora: 'translateX(0)', espia: 'translateX(19px) rotate(12deg)', inteiro: 'translateX(34px) rotate(3deg)' };
+  }
+}
+
+function moverPg(para: string, ms: number) {
+  const de = getComputedStyle(pinguim).transform;
+  pinguim.style.transform = para;
+  if (!semMovimento() && de && de !== 'none')
+    pinguim.animate([{ transform: de }, { transform: para }], { duration: ms, easing: 'cubic-bezier(.3,.7,.3,1)' });
+}
+
+function aparecer(e: Esconderijo, modo: 'espia' | 'inteiro') {
+  window.clearTimeout(voltaAgendada);
+  voltaAgendada = 0;
+  esconderijo = e;
+  ultimaAparicao = Date.now();
+  const p = poses(e.lado);
+  pinguim.style.left = `${e.x}px`;
+  pinguim.style.top = `${e.y}px`;
+  pinguim.style.transform = p.fora;
+  pinguim.hidden = false;
+  void pinguim.offsetWidth;
+  moverPg(p[modo], modo === 'espia' ? 600 : 420);
+  estadoPg = modo === 'espia' ? 'espiando' : 'falando';
+  pinguim.classList.toggle('acenando', modo === 'inteiro');
+}
+
+function esconderPinguim(rapido = false) {
+  window.clearTimeout(timerFalaPg);
+  balaoPg.hidden = true;
+  pinguim.classList.remove('acenando');
+  if (!esconderijo || pinguim.hidden) {
+    estadoPg = 'oculto';
     return;
   }
-  const largura = 34;
-  const x0 = r.left + 16;
-  const x1 = r.right - largura - 16;
-  const xa = x0 + (x1 - x0) / 3;
-  const xb = x0 + ((x1 - x0) * 2) / 3;
-  const trecho = ((x1 - x0) / 3 / 34) * 1000; // anda devagar, 34 px/s
-  const subir = 650;
-  const espiar = 2600;
-  const acenar = 2800;
-  const marcos = [subir, trecho, espiar, trecho, acenar, trecho, subir];
-  const t: number[] = [];
-  marcos.reduce((soma, m) => (t.push(soma + m), soma + m), 0);
-  const total = t[t.length - 1];
-  etapas = [
-    { fim: t[0], pose: 'andando' },
-    { fim: t[1], pose: 'andando' },
-    { fim: t[2], pose: 'espiando', fala: sortear(FALAS_RADIO) },
-    { fim: t[3], pose: 'andando' },
-    { fim: t[4], pose: 'acenando', fala: sortear(FALAS_ACENO) },
-    { fim: t[5], pose: 'andando' },
-    { fim: t[6], pose: 'andando' },
-  ];
-  const quadro = (x: number, y: number, ms: number) => ({ transform: `translate(${x}px, ${y}px)`, offset: ms / total });
+  moverPg(poses(esconderijo.lado).fora, rapido ? 150 : 380);
+  estadoPg = 'oculto';
+  window.setTimeout(() => {
+    if (estadoPg === 'oculto') pinguim.hidden = true;
+  }, rapido ? 160 : 400);
+}
 
-  pinguim.style.top = `${r.top - 40 + 3}px`;
-  pinguim.hidden = false;
-  escondido = false;
-  pinguim.classList.remove('escondido');
-  passeio = pinguim.animate(
-    [
-      quadro(x0, 44, 0),
-      quadro(x0, 0, t[0]),
-      quadro(xa, 0, t[1]),
-      quadro(xa, 0, t[2]),
-      quadro(xb, 0, t[3]),
-      quadro(xb, 0, t[4]),
-      quadro(x1, 0, t[5]),
-      quadro(x1, 44, total),
-    ],
-    { duration: total, easing: 'linear', fill: 'forwards' },
+function falar(texto: string, opcoes: OpcaoPg[] = [], ms = 14_000) {
+  textoPg.textContent = texto;
+  opcoesPg.replaceChildren(
+    ...opcoes.map((o) => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'pg-opcao';
+      b.textContent = o.rotulo;
+      b.addEventListener('click', (ev) => {
+        ev.stopPropagation();
+        o.acao();
+      });
+      return b;
+    }),
   );
-  passeio.finished.then(fimPasseio, fimPasseio);
-  quadroPinguim = requestAnimationFrame(acompanharPinguim);
+  balaoPg.hidden = false;
+  posicionarBalao();
+  window.clearTimeout(timerFalaPg);
+  timerFalaPg = window.setTimeout(() => esconderPinguim(), ms);
 }
 
-// A pose e a fala seguem o tempo da animação, que para quando ele se esconde.
-function acompanharPinguim() {
-  if (!passeio) return;
-  const agora = Number(passeio.currentTime ?? 0);
-  const etapa = etapas.find((e) => agora < e.fim) ?? etapas[etapas.length - 1];
-  if (!escondido) {
-    for (const pose of ['andando', 'espiando', 'acenando']) pinguim.classList.toggle(pose, pose === etapa.pose);
-    const fala = etapa.fala ?? '';
-    if (falaPinguim.textContent !== fala) falaPinguim.textContent = fala;
-    falaPinguim.hidden = !fala;
-  } else if (Date.now() - tempoEscondido > 9000) {
-    sairDaCaixa();
-  }
-  quadroPinguim = requestAnimationFrame(acompanharPinguim);
+// O balão fica em cima do pinguim (ou embaixo, se não couber), com a ponta apontando para ele.
+function posicionarBalao() {
+  const p = pinguim.getBoundingClientRect();
+  const centro = p.left + p.width / 2;
+  const largura = balaoPg.offsetWidth;
+  const altura = balaoPg.offsetHeight;
+  const left = limitarNum(centro - 34, 8, innerWidth - largura - 8);
+  let top = p.top - altura - 14;
+  const abaixo = top < MENU_H + 6;
+  if (abaixo) top = p.bottom + 14;
+  balaoPg.classList.toggle('abaixo', abaixo);
+  balaoPg.style.left = `${left}px`;
+  balaoPg.style.top = `${top}px`;
+  balaoPg.style.setProperty('--cauda', `${limitarNum(centro - left, 16, largura - 16)}px`);
 }
 
-function entrarNaCaixa() {
-  if (!passeio || escondido) return;
-  escondido = true;
-  tempoEscondido = Date.now();
-  passeio.pause();
-  falaPinguim.hidden = true;
-  pinguim.classList.remove('andando', 'espiando', 'acenando');
-  pinguim.classList.add('escondido');
+const opcoesMissao = (): OpcaoPg[] => [
+  {
+    rotulo: 'Ver a missão',
+    acao: () => {
+      esconderPinguim(true);
+      mostrarMissao();
+    },
+  },
+  { rotulo: 'Agora não', acao: () => falar('Tudo bem. Eu espero. (Não vou esperar.)', [], 2600) },
+];
+
+function falarMissao(abertura: string) {
+  if (humano())
+    falar(`${abertura} Missão cumprida, humano. Já espionou os ${dados.projetos.length} projetos?`, [
+      { rotulo: 'Abrir os projetos', acao: () => (esconderPinguim(true), abrir('projetos')) },
+      { rotulo: 'Já vi tudo', acao: () => falar('Mentira. Mas eu respeito.', [], 2600) },
+    ]);
+  else falar(`${abertura} Tenho uma missão para você.`, opcoesMissao());
 }
 
-function sairDaCaixa() {
-  if (!passeio || !escondido) return;
-  escondido = false;
-  pinguim.classList.remove('escondido');
-  passeio.play();
-}
-
-// Mouse perto: para a caixa. Mouse longe: sai devagar e segue a missão.
+// Mouse perto de quem está espiando: ele some e volta daqui a pouco, agora para conversar.
 document.addEventListener('pointermove', (ev) => {
-  if (!passeio || ev.pointerType !== 'mouse') return;
+  ultimaAtividade = Date.now();
+  if (estadoPg !== 'espiando' || ev.pointerType !== 'mouse') return;
   const r = pinguim.getBoundingClientRect();
-  const d = Math.hypot(ev.clientX - (r.left + r.width / 2), ev.clientY - (r.top + r.height / 2));
-  if (d < 85) {
-    window.clearTimeout(timerSaida);
-    timerSaida = 0;
-    if (!escondido) entrarNaCaixa();
-  } else if (escondido && d > 150 && !timerSaida) {
-    timerSaida = window.setTimeout(() => {
-      timerSaida = 0;
-      sairDaCaixa();
-    }, 700);
+  if (Math.hypot(ev.clientX - (r.left + r.width / 2), ev.clientY - (r.top + r.height / 2)) > 110) return;
+  const onde = esconderijo;
+  esconderPinguim(true);
+  voltaAgendada = window.setTimeout(() => voltarComMissao(onde), 3000 + Math.random() * 2000);
+});
+document.addEventListener('keydown', () => (ultimaAtividade = Date.now()), true);
+
+function voltarComMissao(onde: Esconderijo | null) {
+  voltaAgendada = 0;
+  if (!pinguimPode() || estadoPg !== 'oculto') return;
+  const opcoes = esconderijos();
+  const mesmo = onde && opcoes.find((e) => e.alvo === onde.alvo && e.lado === onde.lado);
+  const e = mesmo || (opcoes.length ? sortear(opcoes) : null);
+  if (!e) return;
+  aparecer(e, 'inteiro');
+  window.setTimeout(() => falarMissao('Psiu!'), semMovimento() ? 0 : 440);
+}
+
+pinguim.addEventListener('click', (ev) => {
+  ev.stopPropagation();
+  if (estadoPg === 'espiando' && esconderijo) {
+    window.clearTimeout(voltaAgendada);
+    moverPg(poses(esconderijo.lado).inteiro, 300);
+    estadoPg = 'falando';
+    pinguim.classList.add('acenando');
+    window.setTimeout(() => falarMissao('Ei! Você me achou.'), 320);
+  } else if (estadoPg === 'falando') {
+    esconderPinguim(true);
+    if (humano()) abrir('projetos');
+    else mostrarMissao();
   }
 });
 
-function fimPasseio() {
-  if (!passeio) return;
-  passeio = null;
-  cancelAnimationFrame(quadroPinguim);
-  for (const t of timersPinguim) clearTimeout(t);
-  timersPinguim = [];
-  escondido = false;
-  pinguim.hidden = true;
-  pinguim.classList.remove('andando', 'espiando', 'acenando', 'escondido');
-  falaPinguim.hidden = true;
-  agendarPinguim();
+// De tempos em tempos, quando a pessoa para um pouco, ele espia de algum canto.
+window.setInterval(() => {
+  if (esconderijo && estadoPg !== 'oculto') {
+    // Se a janela onde ele estava se mexeu ou fechou, ele vai embora.
+    const r = esconderijo.alvo.getBoundingClientRect();
+    if (!esconderijo.alvo.getClientRects().length || Math.abs(r.left - esconderijo.r.left) + Math.abs(r.top - esconderijo.r.top) > 2)
+      esconderPinguim(true);
+    return;
+  }
+  if (estadoPg !== 'oculto' || voltaAgendada || !pinguimPode()) return;
+  const agora = Date.now();
+  if (agora - ultimaAparicao < INTERVALO_PG || agora - ultimaAtividade < 4000) return;
+  const opcoes = esconderijos();
+  if (!opcoes.length) return;
+  aparecer(sortear(opcoes), 'espia');
+  timerFalaPg = window.setTimeout(() => {
+    if (estadoPg === 'espiando') esconderPinguim();
+  }, 9000);
+}, 1500);
+
+/* Dicas nos momentos oportunos, cada uma uma vez por visita. */
+
+const dicasVistas = new Set<string>(JSON.parse(sessao.ler('os.dicas') || '[]'));
+
+function dica(chave: string, alvo: HTMLElement | null, texto: string, opcoes: OpcaoPg[]) {
+  if (dicasVistas.has(chave) || !pinguimPode()) return;
+  if (estadoPg !== 'oculto') esconderPinguim(true);
+  const perto = alvo ? esconderijos(alvo) : [];
+  const todos = perto.length ? perto : esconderijos();
+  if (!todos.length) return;
+  dicasVistas.add(chave);
+  sessao.gravar('os.dicas', JSON.stringify([...dicasVistas]));
+  window.setTimeout(
+    () => {
+      aparecer(sortear(todos), 'inteiro');
+      window.setTimeout(() => falar(texto, opcoes, 16_000), semMovimento() ? 0 : 440);
+    },
+    estadoPg === 'oculto' && pinguim.hidden ? 0 : 200,
+  );
+}
+
+function preencherEmail(assuntoNovo: string, texto: string) {
+  abrir('contato', itemDock('contato'));
+  const assunto = $<HTMLInputElement>('#correio-assunto');
+  const msg = $<HTMLTextAreaElement>('#correio-msg');
+  if (assunto) assunto.value = assuntoNovo;
+  if (msg && !msg.value.trim()) msg.value = texto;
+  msg?.focus({ preventScroll: true });
+}
+
+function aoAbrirJanelaPg(id: string) {
+  const atraso = id === 'contato' ? 5000 : id === 'terminal' ? 3500 : id === 'lixeira' ? 2500 : id.startsWith('projeto-') ? 12_000 : 0;
+  if (!atraso) return;
+  window.setTimeout(() => {
+    const j = janelas.get(id);
+    if (!j?.aberta || j.min || ativa !== id) return;
+    if (id === 'contato')
+      dica('contato', j.el, 'Parece que você está escrevendo um e-mail. Quer ajuda?', [
+        {
+          rotulo: 'Sim, me ajuda',
+          acao: () => {
+            preencherEmail(
+              'Vi seu portfólio',
+              'Olá, Guilherme! Vi seu portfólio (e um pinguim de óculos escuros) e gostaria de conversar sobre uma oportunidade.',
+            );
+            falar('Pronto. Agora é só enviar. De nada.', [], 3500);
+          },
+        },
+        { rotulo: 'Sei escrever, obrigado', acao: () => falar('Justo. Mas eu escrevo mais rápido.', [], 3000) },
+      ]);
+    else if (id === 'terminal' && !humano())
+      dica('terminal', j.el, 'Parece que você está tentando usar o terminal. Quer privilégios de ser humano?', [
+        {
+          rotulo: 'Quero!',
+          acao: () => {
+            esconderPinguim(true);
+            mostrarMissao();
+          },
+        },
+        { rotulo: 'Sou um robô', acao: () => falar('Eu sabia. Bip bop.', [], 2600) },
+      ]);
+    else if (id === 'lixeira')
+      dica('lixeira', j.el, 'Parece que você está mexendo no lixo. Eu também: achei um blog aí dentro.', [
+        { rotulo: 'Haha', acao: () => esconderPinguim() },
+      ]);
+    else if (id.startsWith('projeto-')) {
+      const p = porSlug.get(id.slice('projeto-'.length));
+      if (p)
+        dica('projeto', j.el, `Parece que você está lendo sobre o projeto ${p.titulo}. Quer que eu chame o autor?`, [
+          {
+            rotulo: 'Chama!',
+            acao: () => {
+              esconderPinguim(true);
+              preencherEmail(`Sobre o projeto ${p.titulo}`, `Olá, Guilherme! Li sobre o ${p.titulo} e queria conversar.`);
+            },
+          },
+          { rotulo: 'Só estou olhando', acao: () => falar('Tudo bem. Eu também só estou olhando. Para você.', [], 3000) },
+        ]);
+    }
+  }, atraso);
 }
 
 /* A missão: uma mensagem confidencial que se autodestrói. */
@@ -2036,6 +2194,10 @@ function testarCofre() {
     return;
   }
   tentativasCofre += 1;
+  if (tentativasCofre === 3)
+    dica('cofre', cofre.el, 'Psiu: quem construiu a arca foi Noé, não Moisés.', [
+      { rotulo: 'Valeu, agente', acao: () => esconderPinguim() },
+    ]);
   statusCofre.textContent =
     ERROS_COFRE[(tentativasCofre - 1) % ERROS_COFRE.length] +
     (tentativasCofre >= 2
@@ -2213,13 +2375,6 @@ function sl() {
   }, 40);
 }
 
-pinguim.addEventListener('click', (ev) => {
-  ev.stopPropagation();
-  const p = passeio;
-  fimPasseio();
-  p?.cancel();
-  mostrarMissao();
-});
 
 /* ============================================================
    Correio

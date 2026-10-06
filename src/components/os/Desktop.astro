@@ -92,7 +92,7 @@ APARÊNCIA
 Cada projeto tem endereço próprio: dá para mandar o link de um deles.
 
 P.S.: há um agente infiltrado no sistema. Se vir um pinguim de óculos
-escuros andando pelo Dock, clique nele.
+escuros espiando de trás de uma janela ou de uma pasta, chegue perto.
 
 Feito à mão com Astro. Sem rastreadores.`;
 ---
@@ -524,10 +524,8 @@ Feito à mão com Astro. Sem rastreadores.`;
     </div>
   </div>
 
-  <!-- O agente infiltrado: um pinguim de óculos escuros que passeia em cima do Dock -->
-  <button class="pinguim" type="button" data-pinguim hidden aria-label="Agente infiltrado: clique para receber a missão" title="Agente infiltrado. Clique para receber a missão">
-    <span class="pinguim-fala" data-pinguim-fala hidden></span>
-    <span class="pg-alerta" aria-hidden="true">!</span>
+  <!-- O agente infiltrado: um pinguim de óculos escuros que espia de trás das janelas e das pastas -->
+  <button class="pinguim" type="button" data-pinguim hidden aria-label="Agente infiltrado: clique para falar com ele" title="Agente infiltrado">
     <svg class="pg-agente" viewBox="0 0 34 40" aria-hidden="true">
       <g class="pg-corpo">
         <path class="pg-asa-e" d="M6.5 18c-3.5 4-4 9-2.5 12 2-1.5 3.5-5 3.5-9Z" fill="#16161d"></path>
@@ -553,15 +551,11 @@ Feito à mão com Astro. Sem rastreadores.`;
       <ellipse class="pg-pe-e" cx="12" cy="37.4" rx="4.6" ry="2.1" fill="#f5a316" stroke="#c97a06" stroke-width=".6"></ellipse>
       <ellipse class="pg-pe-d" cx="22" cy="37.4" rx="4.6" ry="2.1" fill="#f5a316" stroke="#c97a06" stroke-width=".6"></ellipse>
     </svg>
-    <!-- o disfarce: uma caixa de papelão -->
-    <svg class="pg-caixa" viewBox="0 0 40 34" aria-hidden="true">
-      <path d="M2 9h36v23H2Z" fill="#c8955a" stroke="#7a5527" stroke-width="1"></path>
-      <path d="M2 9l4-6h28l4 6" fill="#dcae74" stroke="#7a5527" stroke-width="1" stroke-linejoin="round"></path>
-      <path d="M17 9h6v23h-6Z" fill="#e8c48f" opacity=".85"></path>
-      <path d="M6 16h8M26 16h8" stroke="#7a5527" stroke-width=".8" opacity=".6"></path>
-      <path d="M8 24h4v4H8Z" fill="none" stroke="#7a5527" stroke-width=".8" opacity=".6"></path>
-    </svg>
   </button>
+  <div class="pg-balao" data-pg-balao role="status" hidden>
+    <p data-pg-texto></p>
+    <div class="pg-opcoes" data-pg-opcoes></div>
+  </div>
 
   <!-- Balão de notificação -->
   <div class="balao" data-balao role="status" hidden>
