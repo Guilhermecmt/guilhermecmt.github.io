@@ -273,7 +273,7 @@ function abrir(id: string, origem?: Element | null, op: { semUrl?: boolean; geo?
   if (!op.semUrl) sincronizarUrl(true);
 
   if (id === 'terminal') mostrarAjudaInicial();
-  if (id === 'minas' || id === 'paciencia') prepararJogo(id);
+  if (id === 'minas' || id === 'paciencia' || id === 'sudoku') prepararJogo(id);
   if (id !== 'dialogo' && id !== 'cofre') {
     aoAbrirJanelaPg(id);
     falasAoAbrir(id);
@@ -878,6 +878,7 @@ const indice: Resultado[] = [
   { grupo: 'Aplicativos', titulo: 'LEIA-ME.txt', sub: 'Bloco de notas', icone: 'i-bloco', cmd: 'abrir:leiame', desc: 'Como usar o GuiOs 26x.04p e os atalhos de teclado.', extra: 'ajuda atalhos leia me' },
   { grupo: 'Aplicativos', titulo: 'Paciência', sub: 'Jogo', icone: 'i-paciencia', cmd: 'abrir:paciencia', desc: 'O jogo de cartas, com a chuva de cartas quando você ganha.', extra: 'jogo cartas solitaire klondike' },
   { grupo: 'Aplicativos', titulo: 'Campo Minado', sub: 'Jogo', icone: 'i-minas', cmd: 'abrir:minas', desc: 'Três níveis. O primeiro clique é sempre seguro.', extra: 'jogo minas minesweeper' },
+  { grupo: 'Aplicativos', titulo: 'Sudoku', sub: 'Jogo', icone: 'i-sudoku', cmd: 'abrir:sudoku', desc: 'Sete níveis, do Fácil ao Insano, com notas, dicas e conquistas.', extra: 'jogo numeros números' },
   { grupo: 'Aplicativos', titulo: 'Lixeira', sub: 'Lixeira', icone: 'i-lixeira-cheia', cmd: 'abrir:lixeira', desc: 'Tem uma coisa ali dentro.', extra: 'blog' },
   ...dados.projetos.map((p) => ({
     grupo: 'Projetos',
@@ -1431,6 +1432,7 @@ const appsTerminal: Record<string, string> = {
   minas: 'minas',
   'campo-minado': 'minas',
   'campo minado': 'minas',
+  sudoku: 'sudoku',
   jogos: 'jogos',
 };
 
@@ -1835,6 +1837,10 @@ function rodar(linha: string) {
     case 'minesweeper':
       escrever('Abrindo o Campo Minado...\n\n', 'ok');
       executar('abrir:minas');
+      break;
+    case 'sudoku':
+      escrever('Abrindo o Sudoku...\n\n', 'ok');
+      executar('abrir:sudoku');
       break;
     case 'jogos':
       executar('abrir:jogos');
@@ -2314,7 +2320,7 @@ function preencherEmail(assuntoNovo: string, texto: string) {
 }
 
 function aoAbrirJanelaPg(id: string) {
-  const jogo = id === 'paciencia' || id === 'minas';
+  const jogo = id === 'paciencia' || id === 'minas' || id === 'sudoku';
   const atraso = id === 'contato' ? 5000 : id === 'terminal' ? 3500 : id === 'lixeira' ? 2500 : jogo ? 7000 : id.startsWith('projeto-') ? 12_000 : 0;
   if (!atraso) return;
   window.setTimeout(() => {
@@ -3042,7 +3048,8 @@ function matrix() {
 }
 
 /* ============================================================
-   Jogos: Paciência e Campo Minado (o jogo em si está em paciencia.ts e minas.ts)
+   Jogos: Paciência, Campo Minado e Sudoku (os dois primeiros em paciencia.ts e minas.ts; o
+   Sudoku é o site do projeto Guilhermecmt/Sudoku, aberto num iframe)
    ============================================================ */
 
 const jogosProntos = new Set<string>();
@@ -3100,6 +3107,13 @@ function prepararJogo(id: string) {
           'minas',
           sortear(['Boom. Acontece.', 'Essa mina não estava no mapa. Ou estava.', 'Calma: até o Guilherme já explodiu algumas.']),
         ),
+    });
+  } else if (id === 'sudoku') {
+    const quadro = $<HTMLIFrameElement>('.sudoku-quadro')!;
+    quadro.src = quadro.dataset.src!;
+    // O clique dentro do iframe não chega aqui; a página só perde o foco. Aí a janela vem para a frente.
+    window.addEventListener('blur', () => {
+      if (document.activeElement === quadro) focar('sudoku');
     });
   } else if (id === 'paciencia') {
     iniciarPaciencia({

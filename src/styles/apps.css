@@ -1552,6 +1552,16 @@
   color: var(--primario-texto);
 }
 
+/* ---------- Sudoku (o site do projeto, num iframe) ---------- */
+
+.sudoku-quadro {
+  flex: 1;
+  width: 100%;
+  min-height: 0;
+  border: 0;
+  background: #fff;
+}
+
 /* ---------- Paciência ---------- */
 
 .pac-placar {

@@ -79,7 +79,7 @@ COMO NAVEGAR
   - Arraste as janelas pela barra de título, ou segurando Alt em
     qualquer ponto delas. Duplo clique na barra dá zoom.
   - O botão de minimizar manda a janela para o Dock.
-  - A pasta Jogos tem Paciência e Campo Minado, para uma pausa.
+  - A pasta Jogos tem Paciência, Campo Minado e Sudoku, para uma pausa.
   - Os números de 1 a 4, no alto, são áreas de trabalho: cada uma
     guarda as suas janelas.
 
@@ -229,6 +229,7 @@ Feito à mão com Astro. Sem rastreadores.`;
         <button class="mi-item" type="button" role="menuitem" data-cmd="abrir:terminal"><Ic id="i-terminal" /> Terminal</button>
         <button class="mi-item" type="button" role="menuitem" data-cmd="abrir:paciencia"><Ic id="i-paciencia" /> Paciência</button>
         <button class="mi-item" type="button" role="menuitem" data-cmd="abrir:minas"><Ic id="i-minas" /> Campo Minado</button>
+        <button class="mi-item" type="button" role="menuitem" data-cmd="abrir:sudoku"><Ic id="i-sudoku" /> Sudoku</button>
         <hr />
         {site.github && <a class="mi-item" role="menuitem" href={site.github} target="_blank" rel="noopener me"><Ic id="i-github" /> GitHub</a>}
         {site.linkedin && <a class="mi-item" role="menuitem" href={site.linkedin} target="_blank" rel="noopener me"><Ic id="i-linkedin" /> LinkedIn</a>}
@@ -376,7 +377,7 @@ Feito à mão com Astro. Sem rastreadores.`;
       <div class="barra-status"><span data-lixeira-status>1 objeto</span></div>
     </Janela>
 
-    <Janela id="jogos" titulo="Jogos" icone="i-pasta" app="Explorador" largura={440} altura={290} soJs>
+    <Janela id="jogos" titulo="Jogos" icone="i-pasta" app="Explorador" largura={560} altura={290} soJs>
       <div class="endereco">
         <span>Endereço</span>
         <span class="campo"><Ic id="i-pasta" /> /home/guilherme/Jogos</span>
@@ -390,8 +391,12 @@ Feito à mão com Astro. Sem rastreadores.`;
           <span class="cel-nome"><Ic id="i-minas" /><span class="nome">Campo Minado</span></span>
           <span class="tipo">Jogo de lógica</span>
         </button>
+        <button class="pr-item" type="button" data-cmd-duplo="abrir:sudoku">
+          <span class="cel-nome"><Ic id="i-sudoku" /><span class="nome">Sudoku</span></span>
+          <span class="tipo">Jogo de lógica</span>
+        </button>
       </div>
-      <div class="barra-status"><span>2 objetos</span></div>
+      <div class="barra-status"><span>3 objetos</span></div>
     </Janela>
 
     <Janela id="paciencia" titulo="Paciência" icone="i-paciencia" app="Paciência" largura={820} altura={620} soJs>
@@ -400,6 +405,11 @@ Feito à mão com Astro. Sem rastreadores.`;
 
     <Janela id="minas" titulo="Campo Minado" icone="i-minas" app="Campo Minado" largura={320} altura="auto" soJs>
       <AppMinas />
+    </Janela>
+
+    <!-- O Sudoku é o projeto Guilhermecmt/Sudoku, publicado no mesmo domínio; o endereço só entra quando a janela abre. -->
+    <Janela id="sudoku" titulo="Sudoku" icone="i-sudoku" app="Sudoku" largura={520} altura={720} soJs>
+      <iframe class="sudoku-quadro" title="Sudoku" data-src="https://guilhermecmt.github.io/Sudoku/"></iframe>
     </Janela>
 
     <Janela id="system" titulo="System" icone="i-pasta" app="Explorador" largura={480} altura={300} soJs>
@@ -535,6 +545,7 @@ Feito à mão com Astro. Sem rastreadores.`;
       <li><button class="app-ic" type="button" data-cmd="abrir:lixeira"><Ic id="i-lixeira-cheia" class="ic-lixeira" /><span class="rotulo">Lixeira</span></button></li>
       <li><button class="app-ic" type="button" data-cmd="abrir:paciencia"><Ic id="i-paciencia" /><span class="rotulo">Paciência</span></button></li>
       <li><button class="app-ic" type="button" data-cmd="abrir:minas"><Ic id="i-minas" /><span class="rotulo">Campo Minado</span></button></li>
+      <li><button class="app-ic" type="button" data-cmd="abrir:sudoku"><Ic id="i-sudoku" /><span class="rotulo">Sudoku</span></button></li>
       <li data-oculto><button class="app-ic item-oculto" type="button" data-cmd="abrir:system"><Ic id="i-pasta" /><span class="rotulo">System</span></button></li>
       {
         projetos.map((p) => (
