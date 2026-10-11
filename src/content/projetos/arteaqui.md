@@ -40,9 +40,9 @@ está perto de você.
 
 ## O que foi construído
 
-O TCC não teve app nem front: o trabalho foi o **motor interno**. Ele cuida da
-conta do usuário (e-mail e Facebook), do cadastro de eventos com local, data, preço, classificação e
-gênero, da localização de quem abre e da marcação de cada evento no mapa, tudo sobre o Firebase.
+O foco do TCC foi o **motor interno**, e as telas ficaram pela metade. O motor cuida da conta do
+usuário (e-mail e Facebook), do cadastro de eventos com local, data, preço, classificação e gênero, da
+localização de quem abre e da marcação de cada evento no mapa, tudo sobre o Firebase.
 
 ## A versão no ar
 
