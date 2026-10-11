@@ -2440,6 +2440,7 @@ function falasAoAbrir(id: string) {
   const especial: Record<string, string> = {
     rookgaard: 'Rookgaard! Eu comecei lá também. Fui morto por um rato.',
     stockgenius: 'Dica de investimento do agente: invista no Guilherme. Rentabilidade passada não garante… brincadeira, garante sim.',
+    arteaqui: 'Projeto de TCC! O meu foi sobre caixas de papelão. Tirei 10.',
   };
   if (especial[slug])
     window.setTimeout(() => {
@@ -2728,6 +2729,7 @@ const SORTES: Record<string, string> = {
   nous: 'A melhor nuvem é a que roda no seu PC. (abrir nous)',
   'llm-hub': 'VRAM cheia não é destino. Um clique resolve. (abrir llm-hub)',
   rookgaard: 'Em Rookgaard todo mundo começa do zero. O jogo também: nenhum arquivo de imagem. (abrir rookgaard)',
+  arteaqui: 'Tem roda de capoeira perto de você. O mapa sabe onde. (abrir arteaqui)',
 };
 
 function fortune() {

@@ -52,6 +52,11 @@ export const iconesProjeto: Record<string, IconeProjeto> = {
     desenho:
       '<path d="M34.8 9.8h4.4v4.4L23.5 29.9l-4.4-4.4Z"/><path d="M14.6 25.4l8 8" stroke="#fff" stroke-width="3.2" stroke-linecap="round"/><path d="M18.6 29.4l-7.4 7.4" stroke="#fff" stroke-width="3.6" stroke-linecap="round"/><circle cx="10.4" cy="37.6" r="2.4"/>',
   },
+  arteaqui: {
+    cores: ['#ffc46b', '#d9481c'],
+    desenho:
+      '<path d="M24 7.5c-6.6 0-11.8 5.1-11.8 11.6 0 8.4 11.8 21.4 11.8 21.4s11.8-13 11.8-21.4C35.8 12.6 30.6 7.5 24 7.5Z"/><path d="M24 12.6l1.9 3.9 4.3.6-3.1 3 .7 4.3-3.8-2-3.8 2 .7-4.3-3.1-3 4.3-.6Z" fill="#d9481c"/>',
+  },
 };
 
 export const iconePadrao: IconeProjeto = {
