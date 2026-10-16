@@ -412,6 +412,7 @@ function arrastar(ev: PointerEvent, j: Janela, alca: HTMLElement, modo: 'mover' 
   const sy = ev.clientY;
   let g0: Geo = { ...j.geo!, h: j.geo!.h || j.el.offsetHeight };
   let moveu = false;
+  const sacode = modo === 'mover' ? medirSacudida(j) : null;
   alca.setPointerCapture(ev.pointerId);
 
   const mover = (m: PointerEvent) => {
@@ -438,6 +439,7 @@ function arrastar(ev: PointerEvent, j: Janela, alca: HTMLElement, modo: 'mover' 
       j.geo = { ...g0, w: Math.max(320, g0.w + dx), h: Math.max(200, g0.h + dy) };
     }
     aplicar(j);
+    sacode?.(m.clientX);
   };
   const soltar = () => {
     if (moveu && modo === 'mover') contarArraste(j.id);
@@ -589,7 +591,10 @@ function preencherMenuJanela() {
 const fmtDia = new Intl.DateTimeFormat('pt-BR', { weekday: 'short', day: 'numeric', month: 'short' });
 const fmtHora = new Intl.DateTimeFormat('pt-BR', { hour: '2-digit', minute: '2-digit' });
 
+let viajandoNoTempo = false; // o relógio volta a 2018 (sete cliques nele)
+
 function relogio() {
+  if (viajandoNoTempo) return;
   const d = new Date();
   const dia = fmtDia.format(d).replace(/\./g, '').replace(/,/g, '');
   $('[data-relogio]')!.innerHTML = `<span class="dia">${esc(dia)}</span>${fmtHora.format(d)}`;
@@ -1522,6 +1527,7 @@ const AJUDA =
   '  sobre, contato        quem é o Guilherme e como falar com ele\n' +
   '  tema <azul|oliva|prata|noir|auto>\n' +
   '  atividades            todas as janelas lado a lado\n' +
+  '  tree                  todas as pastas de uma vez\n' +
   '  history, clear, exit  o de sempre\n\n';
 
 const AJUDA_SECRETA =
@@ -1535,11 +1541,13 @@ const AJUDA_SECRETA =
   '  cafe                  pedir um café\n' +
   '  git blame             descobrir o culpado\n' +
   '  vim                   entrar (sair é outra história)\n' +
+  '  yes <texto>           repetir até cansar\n' +
+  '  xyzzy                 uma palavra mágica\n' +
   '  42                    a resposta\n\n';
 
 // Para quem não abriu o cofre, estes comandos simplesmente não existem.
 const COMANDOS_SECRETOS = new Set([
-  'matrix', 'cowsay', 'fortune', 'sl', 'hack', 'hacker', 'hackear', 'ping', 'cafe', 'coffee', 'brew', 'vim', 'vi', '42',
+  'matrix', 'cowsay', 'fortune', 'sl', 'hack', 'hacker', 'hackear', 'ping', 'cafe', 'coffee', 'brew', 'vim', 'vi', '42', 'yes', 'xyzzy',
 ]);
 
 /* Easter eggs do terminal (não aparecem no ajuda). */
@@ -1903,7 +1911,42 @@ function rodar(linha: string) {
       apt(args, false);
       break;
     case 'sudo':
-      sudo();
+      if (normalizar(arg) === 'make me a sandwich') escrever('Ok. 🥪\n\n', 'ok');
+      else sudo();
+      break;
+    case 'make':
+      if (normalizar(arg) === 'me a sandwich') escrever('make: Faça você mesmo.\n', 'erro');
+      else escrever('make: *** Nenhum alvo indicado e nenhum makefile encontrado.  Pare.\n', 'erro');
+      break;
+    case 'contratar':
+    case 'contrate':
+    case 'hire':
+      contratar();
+      break;
+    case 'kill':
+    case 'killall':
+    case 'pkill': {
+      const alvoKill = normalizar(args.filter((a) => !a.startsWith('-')).join(' '));
+      if (/pinguim|kernel|agente/.test(alvoKill)) matarPinguim();
+      else escrever(`${cmd}: (${alvoKill || '?'}) - Operação não permitida\n`, 'erro');
+      break;
+    }
+    case 'shutdown':
+    case 'poweroff':
+    case 'halt':
+    case 'reboot':
+      escrever(`\nMensagem de guilherme@guios para todos:\nO sistema vai ${cmd === 'reboot' ? 'reiniciar' : 'desligar'} AGORA!\n\n`, 't-amarelo');
+      window.setTimeout(() => executar(cmd === 'reboot' ? 'reiniciar' : 'desligar'), 700);
+      break;
+    case 'tree':
+      tree();
+      break;
+    case 'yes':
+      yes(arg);
+      break;
+    case 'xyzzy':
+      escrever('Nada acontece.\n', 't-amarelo');
+      escrever('(Uma voz cavernosa sussurra: "abra o Campo Minado, digite xyzzy lá e aperte Shift+Enter. Depois, olhe o canto de cima da tela.")\n\n', 't-fraco');
       break;
     case 'vim':
     case 'vi':
@@ -1997,7 +2040,7 @@ formTerminal.addEventListener('submit', (e) => {
 
 const COMANDOS = [
   'ajuda', 'abrir', 'apt', 'atividades', 'cat', 'cd', 'clear', 'contato', 'date', 'echo', 'exit', 'history',
-  'ls', 'man', 'neofetch', 'pwd', 'sobre', 'stack', 'sudo', 'tema', 'top', 'uname', 'whoami', 'xdg-open',
+  'ls', 'man', 'neofetch', 'pwd', 'sobre', 'stack', 'sudo', 'tema', 'top', 'tree', 'uname', 'whoami', 'xdg-open',
 ];
 
 // Tab completa o comando ou o caminho, como no bash. Com várias opções, lista todas.
@@ -3493,3 +3536,321 @@ atualizarDock();
 relogio();
 setInterval(relogio, 15_000);
 ligar();
+
+/* ============================================================
+   Ainda mais easter eggs: código Konami, janela sacudida, o relógio que volta a 2018, datas
+   especiais, o recado no console, a aba que chama de volta e os comandos novos do terminal
+   ============================================================ */
+
+// O agente fala onde der; sem lugar para ele (ou no celular), o recado vai no balão do sistema.
+function pinguimDiz(texto: string, opcoes: OpcaoPg[] = [], perto: HTMLElement | null = null, titulo = 'Agente Kernel', acao: string | null = null) {
+  const tentar = () => {
+    if (pinguimPode() && estadoPg === 'oculto') {
+      const p = esconderijos(perto);
+      const todos = p.length ? p : esconderijos();
+      if (todos.length) {
+        aparecer(sortear(todos), 'inteiro');
+        window.setTimeout(() => falar(texto, opcoes, opcoes.length ? 12_000 : 5000), semMovimento() ? 0 : 440);
+        return;
+      }
+    }
+    mostrarBalao(titulo, texto, acao);
+  };
+  if (estadoPg !== 'oculto') {
+    esconderPinguim(true);
+    window.setTimeout(tentar, 200);
+  } else tentar();
+}
+
+/* Código Konami (↑ ↑ ↓ ↓ ← → ← → B A): o sistema dá uma volta inteira e o agente ganha vidas. */
+
+const KONAMI = ['arrowup', 'arrowup', 'arrowdown', 'arrowdown', 'arrowleft', 'arrowright', 'arrowleft', 'arrowright', 'b', 'a'];
+let passoKonami = 0;
+
+document.addEventListener('keydown', (ev) => {
+  if ((ev.target as Element).closest('input, textarea, select, [contenteditable="true"]')) return;
+  const k = ev.key.toLowerCase();
+  if (k === KONAMI[passoKonami]) passoKonami += 1;
+  // ↑ ↑ ↑ ainda conta como o começo certo.
+  else passoKonami = k === 'arrowup' ? (passoKonami === 2 ? 2 : 1) : 0;
+  if (passoKonami < KONAMI.length) return;
+  passoKonami = 0;
+  konami();
+});
+
+function konami() {
+  fecharPopovers();
+  const fim = () => {
+    raiz.style.background = '';
+    pinguimDiz(
+      '+30 vidas! Use uma para ver os projetos do Guilherme.',
+      [
+        { rotulo: 'Abrir os projetos', acao: () => (esconderPinguim(true), abrir('projetos')) },
+        { rotulo: 'Guardar as vidas', acao: () => falar('Sábio. Vida extra nunca é demais.', [], 2800) },
+      ],
+      null,
+      '+30 vidas',
+      'abrir:projetos',
+    );
+  };
+  if (semMovimento()) {
+    fim();
+    return;
+  }
+  raiz.style.background = '#000';
+  document.body
+    .animate([{ transform: 'rotate(0)' }, { transform: 'rotate(360deg)' }], { duration: 1100, easing: 'cubic-bezier(.6,0,.4,1)' })
+    .finished.then(fim, fim);
+}
+
+/* Sacudir uma janela pela barra de título minimiza todas as outras. Sacudir de novo traz de volta. */
+
+let sacudidas: string[] = [];
+
+// Conta as viradas de direção (de pelo menos 30 px) do arraste: quatro em um segundo é sacudir.
+function medirSacudida(j: Janela) {
+  let dir = 0;
+  let extremo = Number.NaN;
+  const viradas: number[] = [];
+  let feito = false;
+  return (x: number) => {
+    if (feito) return;
+    if (Number.isNaN(extremo)) {
+      extremo = x;
+      return;
+    }
+    if (!dir) {
+      if (Math.abs(x - extremo) >= 30) {
+        dir = Math.sign(x - extremo);
+        extremo = x;
+      }
+      return;
+    }
+    if ((x - extremo) * dir > 0) {
+      extremo = x;
+      return;
+    }
+    if (Math.abs(x - extremo) < 30) return;
+    dir = -dir;
+    extremo = x;
+    const agora = performance.now();
+    viradas.push(agora);
+    while (agora - viradas[0] > 1000) viradas.shift();
+    if (viradas.length < 4) return;
+    feito = true;
+    sacudir(j);
+  };
+}
+
+function sacudir(j: Janela) {
+  const outras = visiveis().filter((o) => o.id !== j.id);
+  if (outras.length) {
+    sacudidas = outras.map((o) => o.id);
+    for (const o of outras) minimizar(o.id);
+    // Espera soltar a janela: o agente não espia de trás de uma janela em movimento.
+    window.setTimeout(
+      () => dica('sacudida', null, 'Você sacudiu tanto que as outras janelas caíram no Dock. Sacuda de novo para elas voltarem.', []),
+      1500,
+    );
+    return;
+  }
+  const voltam = sacudidas.map((id) => janelas.get(id)).filter((o): o is Janela => !!o?.aberta && o.min && o.area === areaAtual);
+  sacudidas = [];
+  for (const o of voltam) restaurar(o);
+  if (voltam.length) focar(j.id);
+}
+
+/* Sete cliques no relógio: ele volta no tempo até 2018, o ano do TCC (o ArteAqui). */
+
+const relogioEl = $('[data-relogio]')!;
+let cliquesRelogio = 0;
+let timerRelogio = 0;
+
+relogioEl.addEventListener('click', () => {
+  cliquesRelogio += 1;
+  window.clearTimeout(timerRelogio);
+  timerRelogio = window.setTimeout(() => (cliquesRelogio = 0), 700);
+  if (cliquesRelogio < 7 || viajandoNoTempo) return;
+  cliquesRelogio = 0;
+  voltarNoTempo();
+});
+
+function voltarNoTempo() {
+  const destino = 2018;
+  let ano = new Date().getFullYear();
+  viajandoNoTempo = true;
+  relogioEl.classList.add('voltando');
+  const voltar = () => {
+    viajandoNoTempo = false;
+    relogioEl.classList.remove('voltando');
+    relogio();
+  };
+  const chegou = () => {
+    relogioEl.textContent = `${destino}`;
+    const tcc = porSlug.get('arteaqui');
+    pinguimDiz(
+      tcc
+        ? `Voltamos para ${destino}! Achei um TCC de faculdade por aqui: o ${tcc.titulo}.`
+        : `Voltamos para ${destino}! Nada para ver por aqui. O futuro é mais interessante.`,
+      [
+        ...(tcc ? [{ rotulo: 'Ver o TCC', acao: () => (esconderPinguim(true), voltar(), executar(`projeto:${tcc.slug}`)) }] : []),
+        { rotulo: 'Voltar para o presente', acao: () => (voltar(), falar('De volta. Tudo como você deixou.', [], 2600)) },
+      ],
+      null,
+      `Ano de ${destino}`,
+      tcc ? `projeto:${tcc.slug}` : null,
+    );
+    window.setTimeout(() => viajandoNoTempo && voltar(), 12_000);
+  };
+  if (semMovimento()) {
+    chegou();
+    return;
+  }
+  const passo = () => {
+    relogioEl.textContent = `${ano}`;
+    if (ano <= destino) {
+      chegou();
+      return;
+    }
+    ano -= 1;
+    window.setTimeout(passo, 160);
+  };
+  passo();
+}
+
+/* Datas especiais: neve em dezembro e uma fala do agente em alguns dias do ano. */
+
+function nevar() {
+  const neve = document.createElement('div');
+  neve.className = 'neve';
+  for (let i = 0; i < 70; i++) {
+    const floco = document.createElement('i');
+    const t = 2 + Math.random() * 4;
+    floco.style.cssText =
+      `left:${Math.random() * 100}%;width:${t}px;height:${t}px;` +
+      `animation-duration:${8 + Math.random() * 10}s;animation-delay:${-Math.random() * 18}s;--vento:${Math.round(Math.random() * 80 - 40)}px`;
+    neve.append(floco);
+  }
+  $('.papel')!.append(neve);
+}
+
+function datasEspeciais(hoje = new Date()) {
+  const d = hoje.getDate();
+  const m = hoje.getMonth() + 1;
+  const a = hoje.getFullYear();
+  if (m === 12) nevar();
+  const idade = a - 2026;
+  const falas: [boolean, string, string][] = [
+    [m === 1 && d === 1, 'ano-novo', `Feliz ${a}! Resolução do agente: espionar menos e mostrar mais projetos.`],
+    [m === 4 && d === 1, 'mentira', 'Hoje é 1º de abril, mas pode confiar: tudo neste portfólio é verdade. Até o pinguim.'],
+    [m === 10 && d === 5 && idade > 0, 'aniversario', `O GuiOs faz ${idade} ${idade === 1 ? 'ano' : 'anos'} hoje! Ele foi ligado pela primeira vez em 5 de outubro de 2026.`],
+    [m === 10 && d === 31, 'halloween', 'Doces ou travessuras? Travessura: o Campo Minado está cheio de minas. Doce: os projetos não têm nenhuma.'],
+    [m === 12 && (d === 24 || d === 25), 'natal', 'Feliz Natal! Eu pedi uma caixa de papelão nova. O Guilherme pediu que você visse os projetos.'],
+    [hoje.getDay() === 5 && d === 13, 'sexta13', 'Sexta-feira 13. Se for jogar Campo Minado hoje, vá com calma.'],
+  ];
+  const fala = falas.find(([vale]) => vale);
+  if (!fala) return;
+  // O agente tenta algumas vezes: na hora em que o sistema liga, ele ainda não pode aparecer.
+  let tentativas = 0;
+  const t = window.setInterval(() => {
+    if (dicasVistas.has(fala[1]) || ++tentativas > 12) window.clearInterval(t);
+    else dica(fala[1], null, fala[2], []);
+  }, 5000);
+}
+
+datasEspeciais();
+
+/* A aba chama de volta quando a pessoa sai, e o agente comenta se ela demorou. */
+
+let saiuEm = 0;
+let tituloAntes = '';
+
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) {
+    saiuEm = Date.now();
+    tituloAntes = document.title;
+    document.title = '🐧 Psiu… volta aqui!';
+    return;
+  }
+  if (tituloAntes) document.title = tituloAntes;
+  if (saiuEm && Date.now() - saiuEm > 30_000)
+    window.setTimeout(() => dica('voltou', null, 'Voltou! Enquanto você estava fora, eu vigiei os projetos. Ninguém mexeu em nada.', []), 800);
+});
+
+/* Um recado para quem abre o DevTools, com uma função de verdade: contratar(). */
+
+function contratarPeloConsole() {
+  preencherEmail('Proposta de trabalho', 'Olá, Guilherme! Vi seu portfólio (e o console dele) e queria conversar sobre uma oportunidade.');
+  return '📨 Abrindo o Correio com a proposta…';
+}
+
+(window as unknown as { contratar: () => string }).contratar = contratarPeloConsole;
+
+console.log(
+  '%c' +
+    [
+      '    .----.',
+      '    | ■■ |    Olá, dev! Você abriu o DevTools.',
+      '    |  ▼ |    O agente Kernel aprova a curiosidade.',
+      '   /|  ┃ |\\',
+      `  ( |  ┃ | )  Este sistema é feito à mão, sem framework de interface e sem rastreadores.`,
+      `    '----'    O código dele é público: ${dados.github}`,
+      '    _/  \\_    Gostou? Digite contratar() aqui mesmo.',
+    ].join('\n'),
+  'font: 12px/1.35 ui-monospace, Consolas, monospace; color: #245ddb',
+);
+
+/* Terminal: contratar, kill pinguim, tree e yes. */
+
+function contratar() {
+  const passos = [
+    { texto: 'Analisando o candidato Guilherme…\n', classe: 't-verde', espera: 600 },
+    { texto: `  Projetos no portfólio ............ ${dados.projetos.length}  ✔\n`, espera: 380 },
+    { texto: '  Disfarce de caixa de papelão ... testado  ✔\n', espera: 380 },
+    { texto: '  Café ............................. aceita  ✔\n', espera: 600 },
+    { texto: 'Resultado: APROVADO. Abrindo o Correio com a proposta…\n\n', classe: 'ok', espera: 600 },
+  ];
+  digitarNoTerminal(passos);
+  const total = passos.reduce((s, p) => s + p.espera, 0);
+  window.setTimeout(
+    () => preencherEmail('Proposta de trabalho', 'Olá, Guilherme! Passei pelo seu portfólio e queria conversar sobre uma oportunidade.'),
+    total,
+  );
+}
+
+function matarPinguim() {
+  digitarNoTerminal([
+    { texto: 'Enviando SIGTERM para o agente Kernel…\n', espera: 700 },
+    { texto: 'kill: o agente ignorou o sinal. Agentes secretos não têm PID.\n\n', classe: 'erro' },
+  ]);
+  window.setTimeout(() => pinguimDiz('Tentou me encerrar? Isso vai para o meu relatório.', [], janelas.get('terminal')!.el), 1200);
+}
+
+function tree() {
+  const ocultos = 'ocultos' in raiz.dataset;
+  let dirs = 0;
+  let arqs = 0;
+  let html = '<b class="t-azul">~</b>\n';
+  const andar = (c: string[], recuo: string) => {
+    const itens = listar(c, ocultos);
+    itens.forEach((i, n) => {
+      const ultimo = n === itens.length - 1;
+      html += `${recuo}${ultimo ? '└── ' : '├── '}${i.dir ? `<b class="t-azul">${esc(i.nome)}</b>` : esc(i.nome)}\n`;
+      if (i.dir) {
+        dirs += 1;
+        andar([...c, i.nome], recuo + (ultimo ? '    ' : '│   '));
+      } else arqs += 1;
+    });
+  };
+  andar([], '');
+  escreverHtml(`${html}\n${dirs} diretórios, ${arqs} arquivos\n\n`);
+}
+
+function yes(texto: string) {
+  const linha = `${texto.trim() || 'y'}\n`;
+  digitarNoTerminal([
+    ...Array.from({ length: 12 }, () => ({ texto: linha.repeat(5), espera: 70 })),
+    { texto: '^C\n', classe: 'erro', espera: 300 },
+    { texto: `${sortear(LEMBRETES)}\n\n`, classe: 't-azul' },
+  ]);
+}

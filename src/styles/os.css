@@ -312,6 +312,11 @@ svg.ic {
   margin-right: 6px;
 }
 
+.relogio.voltando {
+  color: #ffd75e;
+  text-shadow: 0 0 6px rgb(255 200 60 / 0.8);
+}
+
 /* ---------- Menus suspensos e popovers ---------- */
 
 .menu-lista {
@@ -2400,4 +2405,59 @@ html:not(.js) .janela-barra {
   animation-duration: 0.01ms !important;
   animation-iteration-count: 1 !important;
   transition-duration: 0.01ms !important;
+}
+
+/* ---------- Ainda mais easter eggs ---------- */
+
+/* A trapaça do Campo Minado (xyzzy): o pontinho no canto de cima da tela. */
+.minas-pixel {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 2147483647;
+  width: 2px;
+  height: 2px;
+  background: #fff;
+  pointer-events: none;
+}
+
+.minas-pixel.mina {
+  background: #000;
+}
+
+/* Dezembro: neve sobre o papel de parede, atrás das janelas. */
+.neve {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.neve i {
+  position: absolute;
+  top: -12px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 0 4px rgb(255 255 255 / 0.7);
+  opacity: 0.85;
+  animation: cair linear infinite;
+}
+
+@keyframes cair {
+  from {
+    transform: translate(0, 0);
+  }
+  to {
+    transform: translate(var(--vento, 30px), 105vh);
+  }
+}
+
+:root[data-movimento='reduzido'] .neve {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .neve {
+    display: none;
+  }
 }

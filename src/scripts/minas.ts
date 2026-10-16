@@ -314,6 +314,39 @@ export function iniciarMinas(o: OpcoesMinas) {
     botaoBandeira.setAttribute('aria-pressed', String(comBandeira));
   });
 
+  // A trapaça do Campo Minado antigo: digitar xyzzy e apertar Shift+Enter. Daí em diante, um
+  // pontinho no canto de cima da tela fica branco sobre uma casa segura e preto sobre uma mina.
+  let digitado = '';
+  let trapaca = false;
+  const pixel = document.createElement('i');
+  pixel.className = 'minas-pixel';
+  pixel.hidden = true;
+  document.body.append(pixel);
+
+  document.addEventListener(
+    'keydown',
+    (ev) => {
+      if (!raiz.getClientRects().length || (ev.target as Element).closest('input, textarea')) return;
+      if (ev.key === 'Enter' && ev.shiftKey && digitado === 'xyzzy') {
+        ev.preventDefault();
+        ev.stopPropagation();
+        trapaca = !trapaca;
+        digitado = '';
+        if (!trapaca) pixel.hidden = true;
+        return;
+      }
+      if (ev.key.length === 1) digitado = (digitado + ev.key.toLowerCase()).slice(-5);
+    },
+    true,
+  );
+  grade.addEventListener('pointermove', (ev) => {
+    if (!trapaca) return;
+    const x = celulaDe(ev.target);
+    pixel.hidden = !x;
+    if (x) pixel.classList.toggle('mina', x.mina);
+  });
+  grade.addEventListener('pointerleave', () => (pixel.hidden = true));
+
   novoJogo();
   return { novoJogo };
 }
