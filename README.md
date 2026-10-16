@@ -23,7 +23,7 @@ repositório: é só pedir. Os dois feitos no trabalho são exceção: o código
 
 ## Contato
 
-- E-mail: [guigarocko47@gmail.com](mailto:guigarocko47@gmail.com)
+- E-mail: [guilherme@texasseguros.com](mailto:guilherme@texasseguros.com)
 - LinkedIn: [guilherme-macedo-5708301b8](https://www.linkedin.com/in/guilherme-macedo-5708301b8)
 
 ## Sobre este repositório
